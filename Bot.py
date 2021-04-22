@@ -34,7 +34,7 @@ class Bot:
         except Exception as e:
             utils.log(e)
 
-        weeks = self.driver.find_elements_by_xpath("//div[contains(@class, 'rc-WeekCollectionNavigationItem')]//div[contains(@class, 'rc-NavigationDrawer')]//a[contains(@class,'rc-WeekNavigationItem')]")
+        weeks = self.driver.find_elements_by_xpath("//a[contains(@class,'rc-WeekNavigationItem')]")
 
         result = []
 
