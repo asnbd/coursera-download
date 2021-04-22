@@ -51,6 +51,7 @@ class Bot:
 
     def getTopics(self, url):
         self.loadUrl(url)
+        # self.driver.refresh()
         try:
             element = WebDriverWait(self.driver, 40).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-WeekItemName")),
@@ -92,6 +93,23 @@ class Bot:
 
         return result
 
+    def getVideo(self, url):
+        self.loadUrl(url)
+        try:
+            element = WebDriverWait(self.driver, 40).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".video-main-player-container")),
+            )
+        except Exception as e:
+            utils.log(e)
+
+        time.sleep(3)
+
+        video = self.driver.find_element_by_xpath("//video")
+        captions = self.driver.find_element_by_xpath("//video//track[@kind='captions']")
+        video_url = video.get_attribute('src')
+        captions_url = captions.get_attribute('src')
+
+        return (video_url, captions_url)
 
     ###################################################################################################################
     """" Driver Functions """
