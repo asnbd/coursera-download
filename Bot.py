@@ -48,6 +48,45 @@ class Bot:
 
         return result
 
+    def getTopics(self, url):
+        self.loadUrl(url)
+        try:
+            element = WebDriverWait(self.driver, 20).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-NamedItemList"))
+            )
+        except Exception as e:
+            utils.log(e)
+
+        lessons = self.driver.find_elements_by_xpath("//div[contains(@class,'rc-NamedItemList')]")
+        result = []
+
+        for lesson in lessons:
+            lesson_title = lesson.find_element_by_xpath("div[contains(@class,'named-item-list-title')]").text
+            lesson_items = lesson.find_elements_by_xpath("ul//li//a")
+            # print(lesson_title)
+
+            lesson_items_list = []
+
+            for lesson_item in lesson_items:
+                lesson_item_url = lesson_item.get_attribute('href')
+                title = lesson_item.find_element_by_class_name('rc-WeekItemName')
+                lesson_item_title = self.driver.execute_script('return arguments[0].lastChild.textContent;', title).strip()
+                # print(lesson_item_title)
+
+                lesson_item_type = lesson_item.find_element_by_tag_name("title").get_attribute('innerHTML')
+
+                # print(lesson_item_type)
+
+                lesson_items_list.append({"title": lesson_item_title, "type": lesson_item_type, "url": lesson_item_url})
+                # print(lesson_item_url)
+                # print()
+
+            # print()
+
+            result.append({"title": lesson_title, "items": lesson_items_list})
+
+        return result
+
     ###################################################################################################################
     """" Driver Functions """
     ###################################################################################################################
