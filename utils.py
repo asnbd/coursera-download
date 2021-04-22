@@ -2,7 +2,8 @@ from time import localtime
 from datetime import datetime
 from threading import Thread
 import winsound
-
+from pathlib import Path
+import os
 
 def formatTime(time_in_sec):
     r_time_in_sec = round(time_in_sec)
@@ -59,3 +60,12 @@ def runPlayBeepThread(frequency=2000, duration=200):
 
 def log(text):
     print("[{}] {}".format(getCurrentTime(), text))
+
+
+def saveHtml(path, html):
+    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
+    file = open(path, "w", encoding='utf-8')
+    file.write(html)
+    file.close()
+    print("Saved to: ", path)
+
