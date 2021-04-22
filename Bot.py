@@ -126,6 +126,35 @@ class Bot:
 
         return res_html
 
+    def getQuiz(self, title, url):
+        self.loadUrl(url)
+        try:
+            element = WebDriverWait(self.driver, 40).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "._1f8f5kai")),
+            )
+        except Exception as e:
+            utils.log(e)
+
+        resume_button = self.driver.find_element_by_class_name("_1f8f5kai")
+        resume_button.click()
+
+        try:
+            element = WebDriverWait(self.driver, 40).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-FormPartsQuestion")),
+            )
+        except Exception as e:
+            utils.log(e)
+
+        # header = self.driver.find_element_by_class_name("_125g251l").get_attribute('innerHTML')
+        quiz_type = self.driver.find_element_by_class_name("rc-HeaderLeft__sub-header")
+        quiz_type = self.driver.execute_script('return arguments[0].firstChild.textContent;', quiz_type).strip()
+
+        html_body = self.driver.find_element_by_class_name("rc-TunnelVisionWrapper__content-body").get_attribute('outerHTML')
+
+        res_html = "<!DOCTYPE html>\n<html lang=\"en\">\n <head>\n   <title>" + title + '</title>\n   <link rel="stylesheet" href="../../Resources/html/styles.css" />\n </head>\n<body>' + html_body + "\n</body>\n</html>"
+
+        return quiz_type, res_html
+
     ###################################################################################################################
     """" Driver Functions """
     ###################################################################################################################
