@@ -5,8 +5,8 @@ if __name__ == '__main__':
 
     bot = Bot("main")
 
-    bot.loadUrl(homeUrl)
-    print(bot.getWeeks())
+    # bot.loadUrl(homeUrl)
+    print(bot.getWeeks(homeUrl))
     bot.closeBrowser()
 
     print("main")

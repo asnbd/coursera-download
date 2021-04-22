@@ -26,7 +26,8 @@ class Bot:
         # TODO implement browser back
         pass
 
-    def getWeeks(self):
+    def getWeeks(self, url):
+        self.loadUrl(url)
         try:
             element = WebDriverWait(self.driver, 20).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".week-number"))
