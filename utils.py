@@ -38,6 +38,13 @@ def getFormattedDateTimeFile(time_in_sec):
     return "{:02d}{:02d}{:02d}_{:02d}{:02d}{:02d}".format(year, month, day, hours, minutes, seconds)
 
 
+def getFormattedFileName(filename):
+    filename = filename.replace("/", " ")
+    filename = filename.replace("?", "")
+    filename = filename.replace(":", "-")
+    filename = filename.replace('"', "'")
+    return filename
+
 def playBeep():
     Thread(target=runPlayBeepThread).start()
 
