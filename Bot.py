@@ -34,10 +34,18 @@ class Bot:
         except Exception as e:
             utils.log(e)
 
-        weeks = self.driver.find_elements_by_xpath("//h2[contains(@class,'week-number')]")
+        weeks = self.driver.find_elements_by_xpath("//div[contains(@class, 'rc-WeekCollectionNavigationItem')]//div[contains(@class, 'rc-NavigationDrawer')]//a[contains(@class,'rc-WeekNavigationItem')]")
+
+        result = []
+
         for week in weeks:
-            print(week.text)
-        return weeks
+            week_title = week.get_attribute("innerText")
+            week_url = week.get_attribute("href")
+            # print(week_title)
+            # print(week_url)
+            result.append({"title": week_title, "url": week_url})
+
+        return result
 
     ###################################################################################################################
     """" Driver Functions """
