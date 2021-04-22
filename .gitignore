@@ -131,3 +131,4 @@ dmypy.json
 chromedriver_win32/
 geckodriver.log
 profiles/
+data.json
