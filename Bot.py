@@ -1,6 +1,9 @@
 from selenium import webdriver
 import os
 import utils
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 class Bot:
@@ -22,6 +25,19 @@ class Bot:
     def back(self):
         # TODO implement browser back
         pass
+
+    def getWeeks(self):
+        try:
+            element = WebDriverWait(self.driver, 20).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".week-number"))
+            )
+        except Exception as e:
+            utils.log(e)
+
+        weeks = self.driver.find_elements_by_xpath("//h2[contains(@class,'week-number')]")
+        for week in weeks:
+            print(week.text)
+        return weeks
 
     ###################################################################################################################
     """" Driver Functions """
