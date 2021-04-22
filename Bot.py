@@ -2,6 +2,7 @@ from selenium import webdriver
 import os
 import utils
 
+
 class Bot:
     def __init__(self, name):
         self.profile_name = name
@@ -18,9 +19,6 @@ class Bot:
     ###################################################################################################################
     """" Action Functions """
     ###################################################################################################################
-    def loadUrl(self, url):
-        self.driver.get(url)
-
     def back(self):
         # TODO implement browser back
         pass
@@ -28,6 +26,9 @@ class Bot:
     ###################################################################################################################
     """" Driver Functions """
     ###################################################################################################################
+    def loadUrl(self, url):
+        self.driver.get(url)
+
     def loadHtml(self, html_content):
         self.driver.get("data:text/html;charset=utf-8," + html_content)
 
