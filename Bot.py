@@ -109,7 +109,22 @@ class Bot:
         video_url = video.get_attribute('src')
         captions_url = captions.get_attribute('src')
 
-        return (video_url, captions_url)
+        return video_url, captions_url
+
+    def getReading(self, title, url):
+        self.loadUrl(url)
+        try:
+            element = WebDriverWait(self.driver, 40).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".reading-header")),
+            )
+        except Exception as e:
+            utils.log(e)
+
+        html_body = self.driver.find_element_by_id("main").get_attribute('outerHTML')
+
+        res_html = "<!DOCTYPE html>\n<html lang=\"en\">\n <head>\n   <title>" + title + '</title>\n   <link rel="stylesheet" href="../../Resources/html/styles.css" />\n </head>\n<body>' + html_body + "\n</body>\n</html>"
+
+        return res_html
 
     ###################################################################################################################
     """" Driver Functions """
