@@ -79,6 +79,12 @@ class Bot:
 
                 lesson_item_type = lesson_item.find_element_by_tag_name("title").get_attribute('innerHTML')
 
+                if lesson_item_type == "Review Your Peers":
+                    peer_header = title.find_element_by_tag_name("strong").text
+                    if peer_header.find("Practice") >= 0:
+                        lesson_item_type = "Practice Peer-graded Assignment"
+                        # print(lesson_item_type)
+
                 # print(lesson_item_type)
 
                 lesson_items_list.append({"title": lesson_item_title, "type": lesson_item_type, "url": lesson_item_url})
@@ -154,6 +160,37 @@ class Bot:
         res_html = "<!DOCTYPE html>\n<html lang=\"en\">\n <head>\n   <title>" + title + '</title>\n   <link rel="stylesheet" href="../../Resources/html/styles.css" />\n </head>\n<body>' + html_body + "\n</body>\n</html>"
 
         return quiz_type, res_html
+
+    def getPeerGradedAssignment(self, url):
+        self.loadUrl(url)
+        try:
+            element = WebDriverWait(self.driver, 40).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-AssignmentInstructions")),
+            )
+        except Exception as e:
+            utils.log(e)
+
+        header = self.driver.find_element_by_class_name("c-peer-review-title").text
+
+        html_body = self.driver.find_element_by_id("main").get_attribute('outerHTML')
+
+        res_html_instructions = "<!DOCTYPE html>\n<html lang=\"en\">\n <head>\n   <title>" + header + '</title>\n   <link rel="stylesheet" href="../../Resources/html/styles.css" />\n </head>\n<body>' + html_body + "\n</body>\n</html>"
+
+        submissions_button = self.driver.find_elements_by_xpath("//a[contains(@class,'colored-tab')]")[1]
+        submissions_button.click()
+
+        try:
+            element = WebDriverWait(self.driver, 40).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-AssignmentSubmitEditView")),
+            )
+        except Exception as e:
+            utils.log(e)
+
+        html_body = self.driver.find_element_by_id("main").get_attribute('outerHTML')
+
+        res_html_submission = "<!DOCTYPE html>\n<html lang=\"en\">\n <head>\n   <title>" + header + '</title>\n   <link rel="stylesheet" href="../../Resources/html/styles.css" />\n </head>\n<body>' + html_body + "\n</body>\n</html>"
+
+        return header, res_html_instructions, res_html_submission
 
     ###################################################################################################################
     """" Driver Functions """
