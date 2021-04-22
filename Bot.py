@@ -4,6 +4,7 @@ import utils
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import time
 
 
 class Bot:
@@ -52,10 +53,12 @@ class Bot:
         self.loadUrl(url)
         try:
             element = WebDriverWait(self.driver, 40).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-NamedItemList"))
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-WeekItemName")),
             )
         except Exception as e:
             utils.log(e)
+
+        time.sleep(3)
 
         lessons = self.driver.find_elements_by_xpath("//div[contains(@class,'rc-NamedItemList')]")
         result = []
@@ -88,6 +91,7 @@ class Bot:
             self.driver.implicitly_wait(3)
 
         return result
+
 
     ###################################################################################################################
     """" Driver Functions """
