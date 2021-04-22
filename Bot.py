@@ -29,7 +29,7 @@ class Bot:
     def getWeeks(self, url):
         self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 20).until(
+            element = WebDriverWait(self.driver, 40).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".week-number"))
             )
         except Exception as e:
@@ -51,7 +51,7 @@ class Bot:
     def getTopics(self, url):
         self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 20).until(
+            element = WebDriverWait(self.driver, 40).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-NamedItemList"))
             )
         except Exception as e:
@@ -84,6 +84,8 @@ class Bot:
             # print()
 
             result.append({"title": lesson_title, "items": lesson_items_list})
+
+            self.driver.implicitly_wait(3)
 
         return result
 
