@@ -1,4 +1,4 @@
-from Bot import Bot
+from driver import Driver
 import json
 import os
 import utils
@@ -9,13 +9,13 @@ if __name__ == '__main__':
 
     homeUrl = "https://www.coursera.org/learn/project-execution-google/home/welcome"
 
-    bot = Bot("main")
+    driver = Driver("main")
 
-    bot.loadUrl(homeUrl)
+    driver.loadUrl(homeUrl)
 
     # input("Press any key to start...")
 
-    weeks = bot.getWeeks(homeUrl)
+    weeks = driver.getWeeks(homeUrl)
 
     print(weeks)
 
@@ -28,17 +28,16 @@ if __name__ == '__main__':
             print("Skipping Week", week_idx + 1)
             continue
         print(week['title'])
-        topics = bot.getTopics(week['url'])
+        topics = driver.getTopics(week['url'])
         print(topics)
         print()
         week["topics"] = topics
 
         data.append(week)
-        break
 
-    get_video = True
+    get_video = False
     get_reading = False
-    get_quiz = False
+    get_quiz = True
     get_graded_assignment = False
 
     download_queue = []
@@ -58,7 +57,7 @@ if __name__ == '__main__':
                 item_type = item['type']
                 if item_type == "Video":
                     if get_video:
-                        video_url, captions_url = bot.getVideo(item['url'])
+                        video_url, captions_url = driver.getVideo(item['url'])
                         filename = str(index).zfill(2) + ". " + item['title']
                         filename = utils.getFormattedFileName(filename)
                         print(path)
@@ -70,7 +69,7 @@ if __name__ == '__main__':
 
                 elif item_type == "Reading":
                     if get_reading:
-                        html = bot.getReading(item['title'], item['url'])
+                        html = driver.getReading(item['title'], item['url'])
                         filename = str(index).zfill(2) + ". Reading - " + item['title']
                         filename = utils.getFormattedFileName(filename) + ".html"
                         print(path)
@@ -83,7 +82,7 @@ if __name__ == '__main__':
 
                 elif item_type == "Quiz":
                     if get_quiz:
-                        quiz_type, html = bot.getQuiz(item['title'], item['url'])
+                        quiz_type, html = driver.getQuiz(item['title'], item['url'])
                         filename = str(index).zfill(2) + ". " + quiz_type + " - " + item['title']
                         filename = utils.getFormattedFileName(filename) + ".html"
                         print(path)
@@ -94,7 +93,7 @@ if __name__ == '__main__':
                     pass
                 elif item_type == "Practice Peer-graded Assignment" or item_type == "Graded Assignment":
                     if get_graded_assignment:
-                        title, res_html_instructions, res_html_submission = bot.getPeerGradedAssignment(item['url'])
+                        title, res_html_instructions, res_html_submission = driver.getPeerGradedAssignment(item['url'])
                         filename_instructions = str(index).zfill(2) + ". " + title
                         filename_instructions = utils.getFormattedFileName(filename_instructions) + ".html"
 
@@ -135,7 +134,7 @@ if __name__ == '__main__':
     for item in skipped:
         print(item)
 
-    bot.closeBrowser()
+    driver.closeBrowser()
 
     with open('data/download_queue.json', 'w') as outfile:
         json.dump(download_queue, outfile)
