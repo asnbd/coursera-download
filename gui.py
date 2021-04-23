@@ -49,10 +49,10 @@ class App(tk.Tk):
         labelframe.pack(fill="x", expand="yes")
 
         course_link_label = tk.Label(labelframe, text="Course Link:")
-        course_link_entry = tk.Entry(labelframe, width=100)
+        self.course_link_entry = tk.Entry(labelframe, width=100)
 
-        self.refresh_button = tk.Button(labelframe, text="Load", width=8)
-        # self.refresh_button.config(command=self.load)
+        self.load_button = tk.Button(labelframe, text="Load", width=8)
+        self.load_button.config(command=self.loadButtonAction)
 
         self.get_video_check_var = tk.IntVar(value=1)
         self.get_reading_check_var = tk.IntVar(value=1)
@@ -68,8 +68,8 @@ class App(tk.Tk):
         padding_y = 3
 
         course_link_label.grid(row=0, column=0, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
-        course_link_entry.grid(row=0, column=1, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
-        self.refresh_button.grid(row=0, column=2, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
+        self.course_link_entry.grid(row=0, column=1, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
+        self.load_button.grid(row=0, column=2, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
 
         # Checkboxes Frame
         checkboxes_frame.grid(row=1, column=1, pady=padding_y + 2, sticky=tk.S + tk.N + tk.W)
@@ -77,6 +77,20 @@ class App(tk.Tk):
         get_reading_check_box.grid(row=0, column=1, padx=5, sticky=tk.S + tk.N + tk.W)
         get_quiz_check_box.grid(row=0, column=2, padx=5, sticky=tk.S + tk.N + tk.W)
         get_graded_check_box.grid(row=0, column=3, padx=5, sticky=tk.S + tk.N + tk.W)
+
+    ###################################################################################################################
+    """" Button Handler Functions """
+    ###################################################################################################################
+    def loadButtonAction(self):
+        print(self.getCourseLink())
+        pass
+
+    ###################################################################################################################
+    """" Getter Functions """
+    ###################################################################################################################
+    def getCourseLink(self):
+        return self.course_link_entry.get()
+        pass
 
 
 if __name__ == "__main__":
