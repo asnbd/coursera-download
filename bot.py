@@ -6,6 +6,11 @@ from pathlib import Path
 
 
 class Bot:
+    meta_data = []
+    download_queue = []
+    skipped = []
+    skipped_important = []
+
     def __init__(self, driver: Driver, course_url, output_root, start_week=1, get_video=True, get_reading=True, get_quiz=True, get_graded_assignment=True):
         # self.root = os.getcwd()
         self.root = output_root
@@ -22,7 +27,11 @@ class Bot:
     
     def run(self):
         # input("Press any key to start...")
-    
+
+        data = self.loadMeta()
+        self.downloadHtmlAndGetVideoQueue(data)
+
+    def loadMeta(self):
         weeks = self.driver.getWeeks(self.home_url)
 
         print(weeks)
@@ -41,11 +50,11 @@ class Bot:
 
             data.append(week)
 
-        # get_video = False
-        # get_reading = False
-        # get_quiz = True
-        # get_graded_assignment = False
+        self.meta_data = data
 
+        return data
+
+    def downloadHtmlAndGetVideoQueue(self, data):
         download_queue = []
         skipped = []
         skipped_important = []
@@ -57,7 +66,8 @@ class Bot:
 
             topic_index = 1
             for topic in week["topics"]:
-                path = os.path.join(week['title'], str(topic_index).zfill(2) + ". " + utils.getFormattedFileName(topic['title']))
+                path = os.path.join(week['title'],
+                                    str(topic_index).zfill(2) + ". " + utils.getFormattedFileName(topic['title']))
                 index = 1
                 for item in topic["items"]:
                     item_type = item['type']
@@ -99,7 +109,8 @@ class Bot:
                         pass
                     elif item_type == "Practice Peer-graded Assignment" or item_type == "Graded Assignment":
                         if self.get_graded_assignment:
-                            title, res_html_instructions, res_html_submission = self.driver.getPeerGradedAssignment(item['url'])
+                            title, res_html_instructions, res_html_submission = self.driver.getPeerGradedAssignment(
+                                item['url'])
                             filename_instructions = str(index).zfill(2) + ". " + title
                             filename_instructions = utils.getFormattedFileName(filename_instructions) + ".html"
 
@@ -120,7 +131,8 @@ class Bot:
                             utils.saveHtml(full_path, res_html_submission)
                         pass
                     elif item_type == "Programming Assignment":
-                        skipped_important.append({"type": item_type, "path": path, "title": item['title'], "url": item['url']})
+                        skipped_important.append(
+                            {"type": item_type, "path": path, "title": item['title'], "url": item['url']})
                         pass
                     else:
                         skipped.append({"type": item_type, "path": path, "title": item['title'], "url": item['url']})
@@ -129,6 +141,10 @@ class Bot:
                     index += 1
 
                 topic_index += 1
+
+        self.download_queue = download_queue
+        self.skipped_important = skipped_important
+        self.skipped = skipped
 
         print(download_queue)
 
@@ -143,6 +159,8 @@ class Bot:
         self.dumpData(data, download_queue, skipped_important, skipped)
 
         print(json.dumps(data))
+
+        return download_queue
 
     def dumpData(self, data, download_queue, skipped_important, skipped):
         path = "data/" + "log_" + utils.getFormattedDateTimeFile(utils.getCurrentTime().timestamp()) + "/"
