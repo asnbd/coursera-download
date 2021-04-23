@@ -4,6 +4,7 @@ from threading import Thread
 import winsound
 from pathlib import Path
 import os
+import re
 
 def formatTime(time_in_sec):
     r_time_in_sec = round(time_in_sec)
@@ -44,6 +45,9 @@ def getFormattedFileName(filename):
     filename = filename.replace("?", "")
     filename = filename.replace(":", "-")
     filename = filename.replace('"', "'")
+    filename = filename.replace('\r\n', " ")
+    filename = filename.replace('\n', " ")
+    filename = re.sub(' +', ' ', filename)
     return filename
 
 def playBeep():
