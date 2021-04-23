@@ -24,6 +24,9 @@ class Bot:
         self.get_graded_assignment = get_graded_assignment
 
         self.driver.loadUrl(self.home_url)
+
+    def setDownloadTopics(self, topics):
+        self.get_video, self.get_reading, self.get_quiz, self.get_graded_assignment = topics
     
     def run(self):
         # input("Press any key to start...")
