@@ -129,6 +129,6 @@ dmypy.json
 .pyre/
 
 chromedriver_win32/
-geckodriver.log
 profiles/
-data.json
+data/
+geckodriver.log
