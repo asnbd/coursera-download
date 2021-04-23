@@ -1,5 +1,6 @@
 # Import module
 import tkinter as tk
+from tkinter import messagebox
 from tkinter import ttk
 from threading import Thread
 import utils
@@ -7,9 +8,15 @@ import time
 import numpy as np
 from PIL import Image, ImageTk
 import cv2 as cv
+from tkinter import filedialog
+from bot import Bot
+from driver import Driver
 
 
 class App(tk.Tk):
+    bot = None
+    driver = None
+
     def __init__(self, title, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
@@ -26,6 +33,7 @@ class App(tk.Tk):
 
         # Create frames on top frame
         self.createInputFrame(top_frame)
+        self.createOutputFrame(top_frame)
 
         # Create frames on right frame
 
@@ -78,11 +86,79 @@ class App(tk.Tk):
         get_quiz_check_box.grid(row=0, column=2, padx=5, sticky=tk.S + tk.N + tk.W)
         get_graded_check_box.grid(row=0, column=3, padx=5, sticky=tk.S + tk.N + tk.W)
 
+    def createOutputFrame(self, root):
+        labelframe = tk.LabelFrame(root, text="Output", width=600, height=300)
+        labelframe.pack(fill="x", expand="yes")
+
+        output_folder_label = tk.Label(labelframe, text="Output:")
+        self.output_folder_var = tk.StringVar()
+        output_folder_entry = tk.Entry(labelframe, textvariable=self.output_folder_var, width=100)
+
+        def browseFolder():
+            folder_selected = filedialog.askdirectory()
+            if folder_selected != "":
+                self.output_folder_var.set(folder_selected)
+
+        browse_button = tk.Button(labelframe, text="Browse", width=8, command=browseFolder)
+        download_button = tk.Button(labelframe, text="Download", width=8, command=self.downloadButtonAction)
+        # browse_button.config(command=browseFolder)
+
+        # self.get_video_check_var = tk.IntVar(value=1)
+        # self.get_reading_check_var = tk.IntVar(value=1)
+        # self.get_quiz_check_var = tk.IntVar(value=1)
+        # self.get_graded_check_var = tk.IntVar(value=1)
+
+        # checkboxes_frame = tk.Frame(labelframe)
+        # get_video_check_box = tk.Checkbutton(checkboxes_frame, text="Video", variable=self.get_video_check_var)
+        # get_reading_check_box = tk.Checkbutton(checkboxes_frame, text="Reading", variable=self.get_reading_check_var)
+        # get_quiz_check_box = tk.Checkbutton(checkboxes_frame, text="Quiz", variable=self.get_quiz_check_var)
+        # get_graded_check_box = tk.Checkbutton(checkboxes_frame, text="Peer Graded Assignment", variable=self.get_graded_check_var)
+
+        padding_y = 3
+
+        output_folder_label.grid(row=0, column=0, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
+        output_folder_entry.grid(row=0, column=1, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
+        browse_button.grid(row=0, column=2, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
+        download_button.grid(row=1, column=2, padx=5, pady=padding_y + 2, sticky=tk.N)
+
+        # Checkboxes Frame
+        # checkboxes_frame.grid(row=1, column=1, pady=padding_y + 2, sticky=tk.S + tk.N + tk.W)
+        # get_video_check_box.grid(row=0, column=0, padx=5, sticky=tk.S + tk.N + tk.W)
+        # get_reading_check_box.grid(row=0, column=1, padx=5, sticky=tk.S + tk.N + tk.W)
+        # get_quiz_check_box.grid(row=0, column=2, padx=5, sticky=tk.S + tk.N + tk.W)
+        # get_graded_check_box.grid(row=0, column=3, padx=5, sticky=tk.S + tk.N + tk.W)
+
     ###################################################################################################################
     """" Button Handler Functions """
     ###################################################################################################################
     def loadButtonAction(self):
-        print(self.getCourseLink())
+        course_link = self.getCourseLink()
+
+        if course_link == "":
+            messagebox.showinfo(title="Information", message="Please enter course link")
+            return
+
+        download_topics = self.getDownloadTopics()
+
+        if self.driver == None:
+            self.driver = Driver("main")
+
+        if self.bot == None:
+            self.bot = Bot(self.driver, course_link, start_week=1)
+
+        self.bot.setDownloadTopics(download_topics)
+
+    def downloadButtonAction(self):
+        output_folder = self.getOutputFolder()
+
+        if output_folder == "":
+            messagebox.showinfo(title="Information", message="Please choose output folder")
+            return
+
+        if self.bot:
+            self.bot.setOutputRoot(output_folder)
+        else:
+            messagebox.showinfo(title="Information", message="Bot not loaded!")
         pass
 
     ###################################################################################################################
@@ -90,11 +166,21 @@ class App(tk.Tk):
     ###################################################################################################################
     def getCourseLink(self):
         return self.course_link_entry.get()
-        pass
+
+    def getOutputFolder(self):
+        return self.output_folder_var.get()
+
+    def getDownloadTopics(self):
+        get_video = True if self.get_video_check_var.get() else False
+        get_reading = True if self.get_reading_check_var.get() else False
+        get_quiz = True if self.get_quiz_check_var.get() else False
+        get_graded_assignment = True if self.get_graded_check_var.get() else False
+
+        return get_video, get_reading, get_quiz, get_graded_assignment
 
 
 if __name__ == "__main__":
-    app = App("TEST GUI")
+    app = App("Coursera Downloader")
     app.mainloop()
 
     print("Finished")
