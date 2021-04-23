@@ -110,10 +110,30 @@ class Bot:
 
         time.sleep(3)
 
-        video = self.driver.find_element_by_xpath("//video")
         captions = self.driver.find_element_by_xpath("//video//track[@kind='captions']")
-        video_url = video.get_attribute('src')
         captions_url = captions.get_attribute('src')
+
+        # increase_video_size_btn = self.driver.execute_script("document.getElementsByClassName('resolution-change-controls')[0].firstChild")
+
+        # print(self.driver.execute_script("document.getElementsByClassName('resolution-change-controls')[0].lastChild.disabled"))
+        # increase_video_size_btn.click()
+
+        for retry in range(10):
+            video = self.driver.find_element_by_xpath("//video")
+            video_url = video.get_attribute('src')
+
+            if video_url.find("720p") < 0:
+                print("video is not 720p. Recapturing...")
+                # input("Press any key to recapture...")
+                self.driver.execute_script(
+                    "document.getElementsByClassName('resolution-change-controls')[0].lastChild.click()")
+                self.driver.execute_script(
+                    "document.getElementsByClassName('resolution-change-controls')[0].lastChild.click()")
+                time.sleep(1)
+                # increase_video_size_btn.click()
+                # increase_video_size_btn.click()
+            else:
+                break
 
         return video_url, captions_url
 
