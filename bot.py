@@ -11,7 +11,7 @@ class Bot:
     skipped = []
     skipped_important = []
 
-    def __init__(self, driver: Driver, course_url, output_root, start_week=1, get_video=True, get_reading=True, get_quiz=True, get_graded_assignment=True):
+    def __init__(self, driver: Driver, course_url, output_root=None, start_week=1, get_video=True, get_reading=True, get_quiz=True, get_graded_assignment=True):
         # self.root = os.getcwd()
         self.root = output_root
         self.home_url = course_url
@@ -27,6 +27,9 @@ class Bot:
 
     def setDownloadTopics(self, topics):
         self.get_video, self.get_reading, self.get_quiz, self.get_graded_assignment = topics
+
+    def setOutputRoot(self, output_root):
+        self.root = output_root
     
     def run(self):
         # input("Press any key to start...")
