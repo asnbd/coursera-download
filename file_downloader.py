@@ -58,7 +58,7 @@ if __name__ == "__main__":
     root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test"
     downloader = FileDownloader(root)
 
-    downloader.loadQueueFromJson("download_queue.json")
+    downloader.loadQueueFromJson("data/download_queue.json")
     downloader.startDownload()
     #
     # download(url='http://download.thinkbroadband.com/200MB.zip',
