@@ -3,17 +3,22 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
+import json
 
-root = "I:\Others\Downloads\Coursera\Google Project Management\\03. Project Planning - Putting It All Together"
+root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\04. Project Execution - Running the Project"
 # path = os.path.join(root, "targetdirectory")
 
 def files():
     error_list = []
+    total_count = 0
+    skipped_count = 0
+    processed_count = 0
+
     for path, subdirs, files in os.walk(root):
         for name in files:
             if name.endswith(".html"):
                 fpath = os.path.join(path, name)
-                print(fpath)
+                print("Loading:", fpath)
 
                 f = open(fpath, "r", encoding='utf-8')
                 html_text = f.read()
@@ -21,34 +26,55 @@ def files():
                 soup = BeautifulSoup(html_text, 'html.parser')
                 # print(soup.get_text)
                 imgTags = soup.find_all('img')
-                print(len(imgTags))
-                for img in imgTags:
+                print(len(imgTags), "image(s) found")
+                file_modified = False
+                total_count += len(imgTags)
+                for idx, img in enumerate(imgTags):
                     imgUrl = img.get('src')
+                    print("Image {}/{}:".format(idx+1, len(imgTags)), end=" ")
                     if imgUrl.find("../../Resources") >= 0:
+                        print("Already processed. Skipping...")
+                        skipped_count += 1
                         continue
-                    print(imgUrl)
+                    elif imgUrl == "":
+                        error_list.append({"error": "blank img src", "path": fpath})
+                        print("Error: Blank img src")
+                        continue
+                    # print(imgUrl)
                     try:
                         imgFilename = downloadFile(imgUrl)
+                        file_modified = True
+                        processed_count += 1
                         img['src'] = "../../Resources/html/img/" + imgFilename
                     except Exception as e:
-                        print("error")
-                        error_list.append(imgUrl)
+                        print("Error:", e)
+                        error_list.append({"error": "url", "url": imgUrl ,"path": fpath})
                         continue
                     # img['src'] = "TEST"
-                    print(img)
+                    # print(img)
 
-                if len(imgTags) > 0:
+                if file_modified:
                     saveHtml(fpath, str(soup))
                 print()
+
+    print("Total:", total_count, "image(s)")
+    print("Processed:", processed_count, "image(s)")
+    print("Skipped:", skipped_count, "image(s)")
+    print("Errors:", len(error_list))
     print(error_list)
 
+    with open("data/img_errors.json", "w") as out_file:
+        json.dump(error_list, out_file)
+
+
 def downloadFile(url):
+    print("Downloading:", url)
     response = requests.get(url)
     # print(response.headers)
     filename = os.path.basename(urlparse(url).path)
-    print(filename)
+    # print(filename)
     path = os.path.join(root, "Resources", "html", "img", filename)
-    print(path)
+    print("Downloaded To:", path)
     file = open(path, "wb")
     file.write(response.content)
     file.close()
@@ -56,13 +82,14 @@ def downloadFile(url):
     return filename
 
 def saveHtml(path, html):
-    print(html)
+    # print(html)
     file = open(path, "w", encoding='utf-8')
     file.write(html)
     file.close()
+    print("Saved: ", path)
 
 
 if __name__ == '__main__':
     print("main")
-    # files()
+    files()
 
