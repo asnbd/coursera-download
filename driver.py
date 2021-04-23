@@ -7,7 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 
 
-class Bot:
+class Driver:
     def __init__(self, name):
         self.profile_name = name
         profile_dir = os.path.join(os.getcwd(), "profiles", self.profile_name)
@@ -146,6 +146,8 @@ class Bot:
         except Exception as e:
             utils.log(e)
 
+        time.sleep(3)
+
         html_body = self.driver.find_element_by_id("main").get_attribute('outerHTML')
 
         res_html = "<!DOCTYPE html>\n<html lang=\"en\">\n <head>\n   <title>" + title + '</title>\n   <link rel="stylesheet" href="../../Resources/html/styles.css" />\n </head>\n<body>' + html_body + "\n</body>\n</html>"
@@ -161,6 +163,8 @@ class Bot:
         except Exception as e:
             utils.log(e)
 
+        # time.sleep(3)
+
         resume_button = self.driver.find_element_by_class_name("_1f8f5kai")
         resume_button.click()
 
@@ -170,6 +174,8 @@ class Bot:
             )
         except Exception as e:
             utils.log(e)
+
+        time.sleep(3)
 
         # header = self.driver.find_element_by_class_name("_125g251l").get_attribute('innerHTML')
         quiz_type = self.driver.find_element_by_class_name("rc-HeaderLeft__sub-header")
@@ -190,6 +196,8 @@ class Bot:
         except Exception as e:
             utils.log(e)
 
+        time.sleep(3)
+
         header = self.driver.find_element_by_class_name("c-peer-review-title").text
 
         html_body = self.driver.find_element_by_id("main").get_attribute('outerHTML')
@@ -205,6 +213,8 @@ class Bot:
             )
         except Exception as e:
             utils.log(e)
+
+        time.sleep(3)
 
         html_body = self.driver.find_element_by_id("main").get_attribute('outerHTML')
 
