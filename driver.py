@@ -49,6 +49,47 @@ class Driver:
 
         return result
 
+    def getResourceLinks(self, url):
+        self.loadUrl(url)
+        try:
+            element = WebDriverWait(self.driver, 40).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, ".rc-ReferenceNavigationItem"))
+            )
+        except Exception as e:
+            utils.log(e)
+
+        time.sleep(1)
+
+        self.driver.execute_script('document.getElementsByClassName("c-mobile-toggle-button")[0].click()')
+
+        resources = self.driver.find_elements_by_xpath("//a[contains(@class,'rc-ReferenceNavigationItem')]")
+
+        result = []
+
+        for resource in resources:
+            resource_title = resource.get_attribute("innerText")
+            resource_url = resource.get_attribute("href")
+            result.append({"title": resource_title, "type": "reference", "url": resource_url})
+
+        return result
+
+    def getResource(self, title, url):
+        self.loadUrl(url)
+        try:
+            element = WebDriverWait(self.driver, 40).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-CourseReferencesPage")),
+            )
+        except Exception as e:
+            utils.log(e)
+
+        time.sleep(3)
+
+        html_body = self.driver.find_element_by_id("main").get_attribute('outerHTML')
+
+        res_html = "<!DOCTYPE html>\n<html lang=\"en\">\n <head>\n   <title>" + title + '</title>\n   <link rel="stylesheet" href="html/styles.css" />\n </head>\n<body>' + html_body + "\n</body>\n</html>"
+
+        return res_html
+
     def getTopics(self, url):
         self.loadUrl(url)
         # self.driver.refresh()

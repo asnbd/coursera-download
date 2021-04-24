@@ -61,6 +61,33 @@ class Bot:
 
         return data
 
+    def downloadResources(self):
+        resource_items = self.driver.getResourceLinks(self.home_url)
+
+        print(resource_items)
+        resource_path = "Resources"
+
+        for res_idx, item in enumerate(resource_items):
+            item_type = item['type']
+
+            # if item_type == "Reading":
+
+            html = self.driver.getResource(item['title'], item['url'])
+            filename = str(res_idx + 1).zfill(2) + ". " + item['title']
+            filename = utils.getFormattedFileName(filename) + ".html"
+            print("Resource {}/{}:".format(res_idx + 1, len(resource_items)), end=" ")
+            print(filename)
+            # print(html)
+            full_path = os.path.join(self.root, resource_path, filename)
+            # print(full_path)
+            utils.saveHtml(full_path, html)
+
+            print()
+
+        print("Resource Download Finished")
+
+        return True
+
     def downloadHtmlAndGetVideoQueue(self, data):
         download_queue = []
         download_queue_assignment = []
