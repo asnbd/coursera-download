@@ -4,7 +4,6 @@ import os
 import utils
 from pathlib import Path
 
-
 class Bot:
     meta_data = []
     download_queue = []
@@ -62,7 +61,8 @@ class Bot:
         return data
 
     def downloadResources(self):
-        resource_items = self.driver.getResourceLinks(self.home_url)
+        respurce_url = self.home_url.replace("home/welcome", "resources")
+        resource_items = self.driver.getResourceLinks(respurce_url)
 
         print(resource_items)
         resource_path = "Resources"
