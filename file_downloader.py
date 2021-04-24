@@ -2,7 +2,6 @@ import json
 import requests
 import os
 from urllib.parse import urlparse
-# from homura import download
 from pathlib import Path
 from pySmartDL import SmartDL
 import time
@@ -12,6 +11,8 @@ class FileDownloader:
     current_download_item = None
     current_download_obj = None
     gui = None
+
+    stop_queue = False
 
     def __init__(self, root):
         self.download_queue = []
@@ -68,6 +69,9 @@ class FileDownloader:
             print(i, "of", self.getDownloadQueueSize())
             self.downloadFileGui(item['url'], item['filename'], item['path'])
             i += 1
+            if self.stop_queue:
+                self.stop_queue = False
+                return
 
     def downloadFileGui(self, url, filename, path):
         fullpath = os.path.join(self.download_root, path, filename)
@@ -106,6 +110,35 @@ class FileDownloader:
                              "status": self.current_download_obj.get_status()}
 
         return download_info
+
+    def pause(self):
+        if self.current_download_obj is not None:
+            self.current_download_obj.pause()
+            return True
+
+        return False
+
+    def resume(self):
+        if self.current_download_obj is not None and self.current_download_obj.status == "paused":
+            self.current_download_obj.resume()
+            return True
+
+        return False
+
+    def stop(self):
+        if self.current_download_obj is not None:
+            self.current_download_obj.stop()
+            return True
+
+        return False
+
+    def stopQueue(self):
+        if self.current_download_obj is not None:
+            self.stop_queue = True
+            self.current_download_obj.stop()
+            return True
+
+        return False
 
     def attachGUI(self, gui):
         self.gui = gui
