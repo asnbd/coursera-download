@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import utils
 
-root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\04. Project Execution - Running the Project"
+root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test\\Test1"
 # path = os.path.join(root, "targetdirectory")
 
 def files():
@@ -34,6 +34,11 @@ def files():
                 file_modified = False
                 total_count += len(attachment_tags) + len(asset_containers)
 
+                new_attachment_href = "../../Resources"
+
+                if fpath.find("{}Resources{}".format(os.path.sep, os.path.sep)) >= 0:
+                    new_attachment_href = "../Resources"
+
                 for idx, asset_container in enumerate(asset_containers):
                     attachment_tag = asset_container.find('a')
                     attach_filename = asset_container.find("span", {"class": "asset-name"}).text
@@ -41,7 +46,7 @@ def files():
                     # print(link.get("href"))
                     attach_href = attachment_tag.get('href')
                     print("Attachment {}/{}:".format(idx + 1, len(asset_containers)), end=" ")
-                    if attach_href.find("../../Resources") >= 0:
+                    if attach_href.find(new_attachment_href) >= 0:
                         print("Already processed. Skipping...")
                         skipped_count += 1
                         continue
@@ -53,7 +58,7 @@ def files():
                         attah_filename = downloadFile(attach_href, attach_filename)
                         file_modified = True
                         processed_count += 1
-                        attachment_tag['href'] = "../../Resources/attachments/" + attah_filename
+                        attachment_tag['href'] = new_attachment_href + "/attachments/" + attah_filename
                     except Exception as e:
                         print("Error:", e)
                         error_list.append({"error": "url", "url": attach_href, "path": fpath})

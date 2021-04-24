@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 import json
 from pathlib import Path
 
-root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\06. Capstone"
+root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test\\Test1"
 # path = os.path.join(root, "targetdirectory")
 
 def files():
@@ -30,10 +30,16 @@ def files():
                 print(len(imgTags), "image(s) found")
                 file_modified = False
                 total_count += len(imgTags)
+
+                new_img_src = "../../Resources"
+
+                if fpath.find("{}Resources{}".format(os.path.sep, os.path.sep)) >= 0:
+                    new_img_src = "../Resources"
+
                 for idx, img in enumerate(imgTags):
                     imgUrl = img.get('src')
                     print("Image {}/{}:".format(idx+1, len(imgTags)), end=" ")
-                    if imgUrl.find("../../Resources") >= 0:
+                    if imgUrl.find(new_img_src) >= 0:
                         print("Already processed. Skipping...")
                         skipped_count += 1
                         continue
@@ -46,7 +52,7 @@ def files():
                         imgFilename = downloadFile(imgUrl)
                         file_modified = True
                         processed_count += 1
-                        img['src'] = "../../Resources/html/img/" + imgFilename
+                        img['src'] = new_img_src + "/html/img/" + imgFilename
                     except Exception as e:
                         print("Error:", e)
                         error_list.append({"error": "url", "url": imgUrl ,"path": fpath})
