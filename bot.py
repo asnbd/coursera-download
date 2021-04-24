@@ -96,9 +96,9 @@ class Bot:
                             filename = utils.getFormattedFileName(filename) + ".html"
                             print(path)
                             print(filename)
-                            print(html)
+                            # print(html)
                             full_path = os.path.join(self.root, path, filename)
-                            print(full_path)
+                            # print(full_path)
                             utils.saveHtml(full_path, html)
                         pass
 
@@ -109,7 +109,7 @@ class Bot:
                             filename = utils.getFormattedFileName(filename) + ".html"
                             print(path)
                             print(filename)
-                            print(html)
+                            # print(html)
                             full_path = os.path.join(self.root, path, filename)
                             utils.saveHtml(full_path, html)
                         pass
@@ -125,10 +125,10 @@ class Bot:
 
                             print(path)
                             print(filename_instructions)
-                            print(res_html_instructions)
+                            # print(res_html_instructions)
 
                             print(filename_submission)
-                            print(res_html_submission)
+                            # print(res_html_submission)
 
                             full_path = os.path.join(self.root, path, filename_instructions)
                             utils.saveHtml(full_path, res_html_instructions)
@@ -145,8 +145,11 @@ class Bot:
                         continue
 
                     index += 1
+                    print()
 
                 topic_index += 1
+                print()
+            print()
 
         self.download_queue = download_queue
         self.skipped_important = skipped_important
