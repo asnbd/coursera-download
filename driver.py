@@ -222,6 +222,22 @@ class Driver:
 
         return header, res_html_instructions, res_html_submission
 
+    def getAssignmentFrame(self, url):
+        self.loadUrl(url)
+        try:
+            element = WebDriverWait(self.driver, 40).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".widget-iframe")),
+            )
+        except Exception as e:
+            utils.log(e)
+
+        time.sleep(3)
+
+        iframe = self.driver.find_element_by_xpath("//iframe[contains(@class, 'widget-iframe')]")
+        iframe_url = iframe.get_attribute('src')
+
+        return iframe_url
+
     ###################################################################################################################
     """" Driver Functions """
     ###################################################################################################################

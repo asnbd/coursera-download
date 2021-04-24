@@ -8,6 +8,7 @@ from pathlib import Path
 class Bot:
     meta_data = []
     download_queue = []
+    download_queue_assignment = []
     skipped = []
     skipped_important = []
 
@@ -62,6 +63,7 @@ class Bot:
 
     def downloadHtmlAndGetVideoQueue(self, data):
         download_queue = []
+        download_queue_assignment = []
         skipped = []
         skipped_important = []
 
@@ -137,6 +139,12 @@ class Bot:
                             utils.saveHtml(full_path, res_html_submission)
                         pass
                     elif item_type == "Programming Assignment":
+                        assignment_url = self.driver.getAssignmentFrame(item['url'])
+                        filename = str(index).zfill(2) + ". " + item['title']
+                        filename = utils.getFormattedFileName(filename) + ".html"
+                        print(path)
+                        print(filename)
+                        download_queue_assignment.append({"path": path, "filename": filename, "url": assignment_url, "ref": item['url']})
                         skipped_important.append(
                             {"type": item_type, "path": path, "title": item['title'], "url": item['url']})
                         pass
@@ -152,6 +160,7 @@ class Bot:
             print()
 
         self.download_queue = download_queue
+        self.download_queue_assignment = download_queue_assignment
         self.skipped_important = skipped_important
         self.skipped = skipped
 
@@ -165,13 +174,13 @@ class Bot:
         for item in skipped:
             print(item)
 
-        self.dumpData(data, download_queue, skipped_important, skipped)
+        self.dumpData(data, download_queue, download_queue_assignment, skipped_important, skipped)
 
         print(json.dumps(data))
 
         return download_queue
 
-    def dumpData(self, data, download_queue, skipped_important, skipped):
+    def dumpData(self, data, download_queue, download_queue_assignment, skipped_important, skipped):
         path = "data/" + "log_" + utils.getFormattedDateTimeFile(utils.getCurrentTime().timestamp()) + "/"
 
         Path(path).mkdir(parents=True, exist_ok=True)
@@ -181,6 +190,9 @@ class Bot:
 
         with open(path + 'download_queue.json', 'w') as outfile:
             json.dump(download_queue, outfile)
+
+        with open(path + 'download_queue_assignment.json', 'w') as outfile:
+            json.dump(download_queue_assignment, outfile)
 
         with open(path + 'skipped_important.json', 'w') as outfile:
             json.dump(skipped_important, outfile)
