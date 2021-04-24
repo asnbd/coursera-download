@@ -28,6 +28,10 @@ class FileDownloader:
             self.download_queue = download_queue
             print("Loaded", len(download_queue), "item(s)")
 
+    def loadQueueFromList(self, list):
+        self.download_queue = list
+        print("Loaded", len(list), "item(s)")
+
     def getDownloadQueueSize(self):
         return len(self.download_queue)
 
@@ -44,6 +48,7 @@ class FileDownloader:
         # # filename = os.path.basename(urlparse(url).path)
         # # print(filename)
         fullpath = os.path.join(self.download_root, path, filename)
+        fullpath = os.path.normpath(fullpath)
         Path(os.path.dirname(fullpath)).mkdir(parents=True, exist_ok=True)
         # print(path)
         # file = open(path, "wb")
@@ -75,6 +80,7 @@ class FileDownloader:
 
     def downloadFileGui(self, url, filename, path):
         fullpath = os.path.join(self.download_root, path, filename)
+        fullpath = os.path.normpath(fullpath)
         Path(os.path.dirname(fullpath)).mkdir(parents=True, exist_ok=True)
 
         print()
@@ -87,6 +93,10 @@ class FileDownloader:
         while not self.current_download_obj.isFinished():
             download_info = self.getDownloadInfo(fullpath)
 
+            if self.stop_queue:
+                self.stop()
+                return
+
             if download_info:
                 self.gui.setVideoDownloadProgress(download_info)
             time.sleep(0.1)
@@ -95,19 +105,23 @@ class FileDownloader:
 
     def getDownloadInfo(self, full_path):
         download_info = None
-        if self.current_download_obj is not None:
-            # print(self.current_download_obj)
-            download_info = {"total_files": self.getDownloadQueueSize(),
-                             "current_no": self.current_download_no,
-                             "item": self.current_download_item,
-                             "full_path": full_path,
-                             "speed": self.current_download_obj.get_speed(human=True),
-                             "dl_size": self.current_download_obj.get_dl_size(human=True),
-                             "total_size": self.current_download_obj.get_final_filesize(human=True),
-                             "eta": self.current_download_obj.get_eta(human=True),
-                             "progress": self.current_download_obj.get_progress() * 100,
-                             "progress_bar": self.current_download_obj.get_progress_bar(),
-                             "status": self.current_download_obj.get_status()}
+
+        try:
+            if self.current_download_obj is not None:
+                # print(self.current_download_obj)
+                download_info = {"total_files": self.getDownloadQueueSize(),
+                                 "current_no": self.current_download_no,
+                                 "item": self.current_download_item,
+                                 "full_path": full_path,
+                                 "speed": self.current_download_obj.get_speed(human=True),
+                                 "dl_size": self.current_download_obj.get_dl_size(human=True),
+                                 "total_size": self.current_download_obj.get_final_filesize(human=True),
+                                 "eta": self.current_download_obj.get_eta(human=True),
+                                 "progress": self.current_download_obj.get_progress() * 100,
+                                 "progress_bar": self.current_download_obj.get_progress_bar(),
+                                 "status": self.current_download_obj.get_status()}
+        except Exception as e:
+            print("Error:", e)
 
         return download_info
 
