@@ -1,1 +1,4 @@
+requests
 pySmartDL
+selenium
+tk
