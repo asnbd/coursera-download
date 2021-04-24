@@ -105,6 +105,7 @@ class App(tk.Tk):
         browse_button = tk.Button(labelframe, text="Browse", width=8, command=browseFolder)
         self.download_button = tk.Button(labelframe, text="Download", state=tk.DISABLED, width=8, command=self.downloadButtonAction)
         self.download_video_button = tk.Button(labelframe, text="Download Video", command=self.downloadVideoButtonAction)
+        self.download_resource_button = tk.Button(labelframe, text="Download Resource", command=self.downloadResourceButtonAction)
         # browse_button.config(command=browseFolder)
 
         self.get_video_check_var = tk.IntVar(value=1)
@@ -125,6 +126,7 @@ class App(tk.Tk):
         browse_button.grid(row=0, column=2, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
         self.download_button.grid(row=1, column=2, padx=5, pady=padding_y + 2, sticky=tk.N)
         self.download_video_button.grid(row=2, column=2, padx=5, pady=padding_y + 2, sticky=tk.N)
+        self.download_resource_button.grid(row=3, column=2, padx=5, pady=padding_y + 2, sticky=tk.N)
 
         # Checkboxes Frame
         checkboxes_frame.grid(row=1, column=1, pady=padding_y + 2, sticky=tk.S + tk.N + tk.W)
@@ -267,6 +269,35 @@ class App(tk.Tk):
         Thread(target=self.runVideoDownloader).start()
         # self.downloadStatusLoop()
 
+    def downloadResourceButtonAction(self):
+        course_link = self.getCourseLink()
+
+        if course_link == "":
+            messagebox.showinfo(title="Information", message="Please enter course link")
+            return
+
+        output_folder = self.getOutputFolder()
+
+        if output_folder == "":
+            messagebox.showinfo(title="Information", message="Please choose output folder")
+            return
+
+        if self.driver == None:
+            self.driver = Driver("main")
+
+        if self.bot == None:
+            self.bot = Bot(self.driver, course_link)
+
+        self.bot.setOutputRoot(output_folder)
+
+        # self.disableSkipButton(False)
+        # self.disablePauseButton(False)
+        # self.disableCancelButton(False)
+        # self.disableDownloadVideoButton(True)
+
+        Thread(target=self.bot.downloadResources).start()
+        # self.downloadStatusLoop()
+
     def pauseDownloadButtonAction(self):
         if self.file_downloader:
             if self.file_downloader.pause():
@@ -340,6 +371,11 @@ class App(tk.Tk):
         # self.file_downloader.loadQueueFromJson("data/log_20210424_031453/download_queue.json")
         self.file_downloader.loadQueueFromList(self.download_queue)
         self.file_downloader.startDownloadGui()
+
+    def runResourceDownloader(self):
+        self.bot.downloadResources()
+
+        messagebox.showinfo(title="Information", message="Resource Download Complete!")
 
     ###################################################################################################################
     """" Looper Functions """
