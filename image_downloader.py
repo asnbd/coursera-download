@@ -4,8 +4,9 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import json
+from pathlib import Path
 
-root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\04. Project Execution - Running the Project"
+root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\06. Capstone"
 # path = os.path.join(root, "targetdirectory")
 
 def files():
@@ -74,6 +75,7 @@ def downloadFile(url):
     filename = os.path.basename(urlparse(url).path)
     # print(filename)
     path = os.path.join(root, "Resources", "html", "img", filename)
+    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
     print("Downloaded To:", path)
     file = open(path, "wb")
     file.write(response.content)
