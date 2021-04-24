@@ -5,9 +5,7 @@ from tkinter import ttk
 from threading import Thread
 import utils
 import time
-import numpy as np
-from PIL import Image, ImageTk
-import cv2 as cv
+import os
 from tkinter import filedialog
 from bot import Bot
 from driver import Driver
@@ -170,8 +168,9 @@ class App(tk.Tk):
 
         # Button Group
         button_group_frame = tk.Frame(labelframe)
-        self.pause_resume_btn = tk.Button(button_group_frame, text="Pause", width=8, command=self.pauseDownloadButtonAction)
-        self.skip_btn = tk.Button(button_group_frame, text="Skip", width=8, command=self.skipDownloadButtonAction)
+        self.pause_resume_btn = tk.Button(button_group_frame, text="Pause", width=8, state=tk.DISABLED, command=self.pauseDownloadButtonAction)
+        self.skip_btn = tk.Button(button_group_frame, text="Skip", width=8, state=tk.DISABLED, command=self.skipDownloadButtonAction)
+        self.cancel_btn = tk.Button(button_group_frame, text="Cancel", width=8, state=tk.DISABLED, command=self.cancelDownloadButtonAction)
 
         padding_y = 0
 
@@ -208,6 +207,7 @@ class App(tk.Tk):
         button_group_frame.grid(row=9, column=3, padx=5, pady=padding_y + 3, sticky=tk.E)
         self.pause_resume_btn.grid(row=0, column=0, padx=5, pady=padding_y, sticky=tk.E)
         self.skip_btn.grid(row=0, column=1, padx=5, pady=padding_y, sticky=tk.E)
+        self.cancel_btn.grid(row=0, column=2, padx=5, pady=padding_y, sticky=tk.E)
 
         labelframe.columnconfigure(1, weight=1)
         labelframe.columnconfigure(3, weight=2)
@@ -252,6 +252,18 @@ class App(tk.Tk):
             messagebox.showinfo(title="Information", message="Meta Data not loaded. Please load again")
 
     def downloadVideoButtonAction(self):
+        if self.getOutputFolder() == "":
+            messagebox.showinfo(title="Information", message="Please choose output folder")
+            return
+
+        if self.download_queue is None:
+            messagebox.showinfo(title="Information", message="Download Queue is Empty!")
+            return
+
+        self.disableSkipButton(False)
+        self.disablePauseButton(False)
+        self.disableCancelButton(False)
+        self.disableDownloadVideoButton(True)
         Thread(target=self.runVideoDownloader).start()
         # self.downloadStatusLoop()
 
@@ -270,6 +282,15 @@ class App(tk.Tk):
     def skipDownloadButtonAction(self):
         if self.file_downloader:
             self.file_downloader.stop()
+
+    def cancelDownloadButtonAction(self):
+        if self.file_downloader:
+            if self.file_downloader.stopQueue():
+                self.disablePauseButton(True)
+                self.disableCancelButton(True)
+                self.disableSkipButton(True)
+                self.resetFileDownloaderInfo()
+                self.disableDownloadVideoButton(False)
 
     ###################################################################################################################
     """" Getter Functions """
@@ -310,12 +331,14 @@ class App(tk.Tk):
         messagebox.showinfo(title="Information", message="HTML Downloaded and Video Download Queue Generated")
 
     def runVideoDownloader(self):
-        root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test"
+        # root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test"
+        root = self.getOutputFolder()
         if self.file_downloader == None:
             self.file_downloader = FileDownloader(root)
 
         self.file_downloader.attachGUI(self)
-        self.file_downloader.loadQueueFromJson("data/log_20210424_031453/download_queue.json")
+        # self.file_downloader.loadQueueFromJson("data/log_20210424_031453/download_queue.json")
+        self.file_downloader.loadQueueFromList(self.download_queue)
         self.file_downloader.startDownloadGui()
 
     ###################################################################################################################
@@ -334,38 +357,118 @@ class App(tk.Tk):
     ###################################################################################################################
     """" GUI Functions """
     ###################################################################################################################
-    def setVideoDownloadProgress(self, download_info):
+    def setScrapProgress(self, download_info):
         item = download_info['item']
-
-        topic_text = "Topic: {}".format(self.fitText(item['path'].split("\\")[1]))
 
         progress = download_info['progress']
 
         current_no = download_info['current_no']
         total_files = download_info['total_files']
 
-        prev_progress = (current_no - 1) / total_files * 100
-        single_progress = 1 / total_files * 100
+        week = item['path'].split("\\")[0]
+        topic_text = "Topic: {}".format(item['path'].split("\\")[1])
+        filename = item['filename']
+        url = item['url']
+        output = download_info['full_path']
 
-        total_progress = prev_progress + (single_progress * progress / 100)
+        eta = download_info['eta']
+        speed = download_info['speed']
 
-        downloaded_text = "{} ( {:.2f} % )".format(download_info['dl_size'], progress)
-        total_text = "{} of {} ( {:.2f} % )".format(current_no, total_files, total_progress)
+        dl_size = download_info['dl_size']
+        file_size = download_info['total_size']
 
-        self.progress_bar['value'] = progress
-        self.total_progress_bar['value'] = total_progress
+        self.setFileDownloaderInfo(week=week, topic=topic_text, filename=filename, url=url, output=output,
+                                   eta=eta, speed=speed, dl_size=dl_size, file_size=file_size,
+                                   progress=progress, current_no=current_no, total_files=total_files)
 
-        self.time_val_label.config(text=download_info['eta'])
-        self.speed_val_label.config(text=download_info['speed'])
-        self.downloaded_val_label.config(text=downloaded_text)
-        self.size_val_label.config(text=download_info['total_size'])
-        self.total_val_label.config(text=total_text)
+    def setVideoDownloadProgress(self, download_info):
+        item = download_info['item']
 
-        self.filename_val_label.config(text=self.fitText(item['filename'], 100))
-        self.url_val_label.config(text=self.fitText(item['url'], 100))
-        self.week_label.config(text=item['path'].split("\\")[0])
-        self.topic_label.config(text=topic_text)
-        self.output_val_label.config(text=self.fitText(download_info['full_path']))
+        progress = download_info['progress']
+
+        current_no = download_info['current_no']
+        total_files = download_info['total_files']
+
+        # prev_progress = (current_no - 1) / total_files * 100
+        # single_progress = 1 / total_files * 100
+        #
+        # total_progress = prev_progress + (single_progress * progress / 100)
+
+        week = item['path'].split("\\")[0]
+        topic_text = "Topic: {}".format(item['path'].split("\\")[1])
+        filename = item['filename']
+        url = item['url']
+        output = download_info['full_path']
+
+        eta = download_info['eta']
+        speed = download_info['speed']
+
+        dl_size = download_info['dl_size']
+        file_size = download_info['total_size']
+
+        self.setFileDownloaderInfo(week=week, topic=topic_text, filename=filename, url=url, output=output,
+                                   eta=eta, speed=speed, dl_size=dl_size, file_size=file_size,
+                                   progress=progress, current_no=current_no, total_files=total_files)
+
+    def setFileDownloaderInfo(self, week=None, topic=None, filename=None, url=None, output=None,
+                              eta=None, speed=None, dl_size=None, file_size=None,
+                              progress=None, current_no=0, total_files=0):
+        total_text = ""
+        total_progress = 0
+
+        if current_no > 0 and total_files > 0:
+            prev_progress = (current_no - 1) / total_files * 100
+            single_progress = 1 / total_files * 100
+            total_progress = prev_progress + (single_progress * progress / 100)
+            total_text = "{} of {} ( {:.2f} % )".format(current_no, total_files, total_progress)
+
+        if week is not None: self.week_label.config(text=week)
+        if topic is not None: self.topic_label.config(text=self.fitText(topic, 70))
+        if filename is not None: self.filename_val_label.config(text=self.fitText(filename))
+        if url is not None: self.url_val_label.config(text=self.fitText(url))
+        if output is not None: self.output_val_label.config(text=self.fitText(output))
+
+        if eta is not None: self.time_val_label.config(text=eta)
+        if speed is not None: self.speed_val_label.config(text=speed)
+
+        if dl_size is not None:
+            downloaded_text = "{} ( {:.2f} % )".format(dl_size, progress) if dl_size != "" else ""
+            self.downloaded_val_label.config(text=downloaded_text)
+
+        if file_size is not None: self.size_val_label.config(text=file_size)
+        if total_text is not None: self.total_val_label.config(text=total_text)
+
+        if progress is not None: self.progress_bar['value'] = progress
+        if total_progress is not None: self.total_progress_bar['value'] = total_progress
+
+    def resetFileDownloaderInfo(self):
+        self.setFileDownloaderInfo(week="", topic="", filename="", url="", output="",
+                                   eta="", speed="", dl_size="", file_size="",
+                                   progress=0, current_no=0, total_files=0)
+
+    def disableDownloadVideoButton(self, val):
+        if val:
+            self.download_video_button.config(state="disabled")
+        else:
+            self.download_video_button.config(state="normal")
+
+    def disablePauseButton(self, val):
+        if val:
+            self.pause_resume_btn.config(state="disabled")
+        else:
+            self.pause_resume_btn.config(state="normal")
+
+    def disableSkipButton(self, val):
+        if val:
+            self.skip_btn.config(state="disabled")
+        else:
+            self.skip_btn.config(state="normal")
+
+    def disableCancelButton(self, val):
+        if val:
+            self.cancel_btn.config(state="disabled")
+        else:
+            self.cancel_btn.config(state="normal")
 
     def fitText(self, text, width=100):
         if text and width and len(text) > width:
@@ -379,4 +482,3 @@ if __name__ == "__main__":
     app.mainloop()
 
     print("Finished")
-
