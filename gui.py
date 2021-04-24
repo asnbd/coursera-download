@@ -19,7 +19,7 @@ class App(tk.Tk):
     driver = None
     meta_data = None
     download_queue = None
-    video_downloader = None
+    file_downloader = None
 
     def __init__(self, title, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -40,7 +40,7 @@ class App(tk.Tk):
         self.createOutputFrame(top_frame)
 
         # Create frames on right frame
-        self.createVideoDownloaderFrame(bottom_frame)
+        self.createFileDownloaderFrame(bottom_frame)
 
     ###################################################################################################################
     """" Frame Creation Functions """
@@ -135,8 +135,8 @@ class App(tk.Tk):
         get_quiz_check_box.grid(row=0, column=2, padx=5, sticky=tk.S + tk.N + tk.W)
         get_graded_check_box.grid(row=0, column=3, padx=5, sticky=tk.S + tk.N + tk.W)
 
-    def createVideoDownloaderFrame(self, root):
-        labelframe = tk.LabelFrame(root, text="Video Downloader", width=600, height=300)
+    def createFileDownloaderFrame(self, root):
+        labelframe = tk.LabelFrame(root, text="File Downloader", width=600, height=300)
         labelframe.pack(fill="x", expand="yes")
 
         self.week_label = tk.Label(labelframe, text="")
@@ -168,6 +168,11 @@ class App(tk.Tk):
         self.progress_bar = ttk.Progressbar(labelframe, length=100, orient=tk.HORIZONTAL, mode='determinate')
         self.total_progress_bar = ttk.Progressbar(labelframe, length=100, orient=tk.HORIZONTAL, mode='determinate')
 
+        # Button Group
+        button_group_frame = tk.Frame(labelframe)
+        self.pause_resume_btn = tk.Button(button_group_frame, text="Pause", width=8, command=self.pauseDownloadButtonAction)
+        self.skip_btn = tk.Button(button_group_frame, text="Skip", width=8, command=self.skipDownloadButtonAction)
+
         padding_y = 0
 
         self.week_label.grid(row=0, column=0, padx=5, pady=padding_y, sticky=tk.W)
@@ -198,6 +203,11 @@ class App(tk.Tk):
         self.total_val_label.grid(row=7, column=1, padx=5, pady=padding_y, sticky=tk.W)
 
         self.total_progress_bar.grid(row=8, column=0, columnspan=4, padx=5, pady=padding_y + 3, sticky=tk.W + tk.E)
+
+        # Button Group Frame
+        button_group_frame.grid(row=9, column=3, padx=5, pady=padding_y + 3, sticky=tk.E)
+        self.pause_resume_btn.grid(row=0, column=0, padx=5, pady=padding_y, sticky=tk.E)
+        self.skip_btn.grid(row=0, column=1, padx=5, pady=padding_y, sticky=tk.E)
 
         labelframe.columnconfigure(1, weight=1)
         labelframe.columnconfigure(3, weight=2)
@@ -245,6 +255,22 @@ class App(tk.Tk):
         Thread(target=self.runVideoDownloader).start()
         # self.downloadStatusLoop()
 
+    def pauseDownloadButtonAction(self):
+        if self.file_downloader:
+            if self.file_downloader.pause():
+                self.pause_resume_btn.config(text="Resume")
+                self.pause_resume_btn.config(command=self.resumeDownloadButtonAction)
+
+    def resumeDownloadButtonAction(self):
+        if self.file_downloader:
+            if self.file_downloader.resume():
+                self.pause_resume_btn.config(text="Pause")
+                self.pause_resume_btn.config(command=self.pauseDownloadButtonAction)
+
+    def skipDownloadButtonAction(self):
+        if self.file_downloader:
+            self.file_downloader.stop()
+
     ###################################################################################################################
     """" Getter Functions """
     ###################################################################################################################
@@ -285,19 +311,19 @@ class App(tk.Tk):
 
     def runVideoDownloader(self):
         root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test"
-        if self.video_downloader == None:
-            self.video_downloader = FileDownloader(root)
+        if self.file_downloader == None:
+            self.file_downloader = FileDownloader(root)
 
-        self.video_downloader.attachGUI(self)
-        self.video_downloader.loadQueueFromJson("data/log_20210424_031453/download_queue.json")
-        self.video_downloader.startDownloadGui()
+        self.file_downloader.attachGUI(self)
+        self.file_downloader.loadQueueFromJson("data/log_20210424_031453/download_queue.json")
+        self.file_downloader.startDownloadGui()
 
     ###################################################################################################################
     """" Looper Functions """
     ###################################################################################################################
     def downloadStatusLoop(self):
-        if self.video_downloader:
-            total_files, self.current_download_no, self.current_download_item, download_info = self.video_downloader.getDownloadInfo()
+        if self.file_downloader:
+            total_files, self.current_download_no, self.current_download_item, download_info = self.file_downloader.getDownloadInfo()
 
             if download_info:
                 self.progress_bar['value'] = download_info['progress']
@@ -340,15 +366,6 @@ class App(tk.Tk):
         self.week_label.config(text=item['path'].split("\\")[0])
         self.topic_label.config(text=topic_text)
         self.output_val_label.config(text=self.fitText(download_info['full_path']))
-
-        # "current_no": self.current_download_no,
-        # "item": self.current_download_item,
-        # "speed": self.current_download_obj.get_speed(human=True),
-        # "dl_size": self.current_download_obj.get_dl_size(human=True),
-        # "eta": self.current_download_obj.get_eta(human=True),
-        # "progress": self.current_download_obj.get_progress() * 100,
-        # "progress_bar": self.current_download_obj.get_progress_bar(),
-        # "status": self.current_download_obj.get_status()}
 
     def fitText(self, text, width=100):
         if text and width and len(text) > width:
