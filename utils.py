@@ -5,6 +5,9 @@ import winsound
 from pathlib import Path
 import os
 import re
+import requests
+from urllib.parse import urlparse
+from urllib.parse import urljoin
 
 def formatTime(time_in_sec):
     r_time_in_sec = round(time_in_sec)
@@ -66,10 +69,45 @@ def log(text):
     print("[{}] {}".format(getCurrentTime(), text))
 
 
-def saveHtml(path, html):
+def savePlainFile(path, content):
     Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
     file = open(path, "w", encoding='utf-8')
-    file.write(html)
+    file.write(content)
     file.close()
     print("Saved to: ", path)
+
+    return os.path.basename(path)
+
+
+def downloadFile(url, path, filename=None):
+    print("Downloading:", url)
+    response = requests.get(url)
+
+    if filename is None:
+        filename = os.path.basename(urlparse(url).path)
+
+    path = os.path.join(path, filename)
+    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
+    file = open(path, "wb")
+    file.write(response.content)
+    file.close()
+    print("Downloaded To:", path)
+
+    return filename
+
+
+def getFullUrl(base, url):
+    if url.startswith("http:") or url.startswith("https:"):
+        return url
+    else:
+        return urljoin(base, url)
+
+
+def getFile(url):
+    print("Downloading:", url)
+    response = requests.get(url)
+
+    return response.content
+
+
 

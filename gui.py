@@ -17,6 +17,7 @@ class App(tk.Tk):
     driver = None
     meta_data = None
     download_queue = None
+    external_exercise_queue = None
     file_downloader = None
 
     def __init__(self, title, *args, **kwargs):
@@ -261,12 +262,14 @@ class App(tk.Tk):
             self.driver = Driver("main")
 
         if self.bot == None:
-            self.bot = Bot(self.driver, course_link, start_week=1, gui=self)
+            self.bot = Bot(self.driver, start_week=1, gui=self)
+
+        self.bot.setCourseUrl(course_link)
 
         download_topics = self.getDownloadTopics()
         self.bot.setDownloadTopics(download_topics)
 
-        self.loadMetaData()
+        Thread(target=self.runLoadMetaThread).start()
 
     def scrapeButtonAction(self):
         output_folder = self.getOutputFolder()
@@ -284,7 +287,7 @@ class App(tk.Tk):
         self.bot.setDownloadTopics(download_topics)
 
         if self.meta_data:
-            self.downloadHtmlAndGetVideoQueue()
+            Thread(target=self.runDownloadHtmlAndGetVideoQueue).start()
         else:
             messagebox.showinfo(title="Information", message="Meta Data not loaded. Please load again")
 
@@ -293,37 +296,24 @@ class App(tk.Tk):
             messagebox.showinfo(title="Information", message="Please choose output folder")
             return
 
-        if self.download_queue is None:
+        if not self.download_queue:
             messagebox.showinfo(title="Information", message="Download Queue is Empty!")
             return
 
-        self.disableSkipButton(False)
-        self.disablePauseButton(False)
-        self.disableCancelButton(False)
-        self.disableDownloadVideoButton(True)
         Thread(target=self.runVideoDownloader).start()
-        # self.downloadStatusLoop()
 
     def downloadExternalButtonAction(self):
         output_folder = self.getOutputFolder()
-        pass
-        #
-        # if output_folder == "":
-        #     messagebox.showinfo(title="Information", message="Please choose output folder")
-        #     return
-        #
-        # if self.driver == None:
-        #     self.driver = Driver("main")
-        #
-        # self.bot.setOutputRoot(output_folder)
-        #
-        # # self.disableSkipButton(False)
-        # # self.disablePauseButton(False)
-        # # self.disableCancelButton(False)
-        # # self.disableDownloadVideoButton(True)
-        #
-        # Thread(target=self.bot.downloadResources).start()
-        # # self.downloadStatusLoop()
+
+        if output_folder == "":
+            messagebox.showinfo(title="Information", message="Please choose output folder")
+            return
+
+        if not self.external_exercise_queue:
+            messagebox.showinfo(title="Information", message="External Exercise Queue is Empty!")
+            return
+
+        Thread(target=self.runExternalExerciseDownloader).start()
 
     def downloadResourceButtonAction(self):
         course_link = self.getCourseLink()
@@ -351,7 +341,7 @@ class App(tk.Tk):
         # self.disableCancelButton(False)
         # self.disableDownloadVideoButton(True)
 
-        Thread(target=self.bot.downloadResources).start()
+        Thread(target=self.runResourceDownloader).start()
         # self.downloadStatusLoop()
 
     def pauseDownloadButtonAction(self):
@@ -400,17 +390,17 @@ class App(tk.Tk):
     ###################################################################################################################
     """" Thread Functions """
     ###################################################################################################################
-    def loadMetaData(self):
-        # self.disableButton(self.load_button, True)
-        Thread(target=self.runLoadMetaThread).start()
-
     def runLoadMetaThread(self):
-        self.disableButtons(self.load_button, self.scrape_button, self.download_video_button,
-                            self.download_external_button, self.download_resource_button,
-                            self.pause_resume_btn, self.skip_btn, self.cancel_btn)
+        # Disable Buttons
+        self.disableIOButtons()
+        self.disableDownloadButtons()
 
         self.setInputStatus("Loading Metadata...", color="red")
         self.meta_data = self.bot.loadMeta()
+
+        if not self.meta_data:
+            messagebox.showwarning("Warning", "Course URL not set")
+            return
         print(self.meta_data)
 
         item_count = 0
@@ -426,32 +416,31 @@ class App(tk.Tk):
 
         messagebox.showinfo(title="Information", message="Meta data loaded!")
 
+        # Enable Buttons
         self.disableButtons(self.load_button, self.scrape_button, self.download_resource_button, val=False)
-
-    def downloadHtmlAndGetVideoQueue(self):
-        Thread(target=self.runDownloadHtmlAndGetVideoQueue).start()
 
     def runDownloadHtmlAndGetVideoQueue(self):
         self.setOutputStatus("Scraping...", color="red")
 
-        self.disableButtons(self.load_button, self.scrape_button, self.download_video_button,
-                            self.download_external_button, self.download_resource_button,
-                            self.pause_resume_btn, self.skip_btn, self.cancel_btn)
+        # Disable Buttons
+        self.disableIOButtons()
+        self.disableDownloadButtons()
 
-        self.download_queue = self.bot.downloadHtmlAndGetVideoQueue(self.meta_data)
+        self.download_queue, self.external_exercise_queue = self.bot.downloadHtmlAndGetVideoQueue(self.meta_data)
         print(self.download_queue)
 
         self.setOutputStatus("Downloaded HTMLs & Loaded {} videos in the queue".format(len(self.download_queue)), color="green")
 
-        self.disableButtons(self.load_button, self.scrape_button, self.download_video_button,
-                            self.download_external_button, self.download_resource_button, val=False)
-
-        # self.scrape_button.config(state="normal")
-        # self.download_external_button.config(state="normal")
+        # Enable Buttons
+        self.disableIOButtons(False)
 
         messagebox.showinfo(title="Information", message="HTML Downloaded and Video Download Queue Generated")
 
     def runVideoDownloader(self):
+        # Disable Buttons
+        self.disableIOButtons()
+        self.disableDownloadButtons(False)
+
         # root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test"
         root = self.getOutputFolder()
         if self.file_downloader == None:
@@ -463,9 +452,28 @@ class App(tk.Tk):
         self.file_downloader.startDownloadGui()
 
     def runResourceDownloader(self):
+        # Disable Buttons
+        self.disableIOButtons()
+        self.disableDownloadButtons()
+
         self.bot.downloadResources()
 
         messagebox.showinfo(title="Information", message="Resource Download Complete!")
+
+        # Enable Buttons
+        self.disableIOButtons(False)
+
+    def runExternalExerciseDownloader(self):
+        # Disable Buttons
+        self.disableIOButtons()
+        self.disableDownloadButtons()
+
+        self.bot.downloadExternalExercise()
+
+        messagebox.showinfo(title="Information", message="External Exercise Download Complete!")
+
+        # Enable Buttons
+        self.disableIOButtons(False)
 
     ###################################################################################################################
     """" Looper Functions """
@@ -514,11 +522,6 @@ class App(tk.Tk):
 
         current_no = download_info['current_no']
         total_files = download_info['total_files']
-
-        # prev_progress = (current_no - 1) / total_files * 100
-        # single_progress = 1 / total_files * 100
-        #
-        # total_progress = prev_progress + (single_progress * progress / 100)
 
         week = item['path'].split("\\")[0]
         topic_text = "Topic: {}".format(item['path'].split("\\")[1])
@@ -609,6 +612,23 @@ class App(tk.Tk):
             self.cancel_btn.config(state="disabled")
         else:
             self.cancel_btn.config(state="normal")
+
+    def disableIOButtons(self, val=True):
+        self.disableButtons(self.load_button, self.scrape_button, self.download_video_button,
+                            self.download_external_button, self.download_resource_button, val=val)
+
+    def disableDownloadButtons(self, val=True):
+        self.disableButtons(self.pause_resume_btn, self.skip_btn, self.cancel_btn, val=val)
+
+    # Show Dialogs
+    def showDownloadCompleteDialog(self, msg=None):
+        if msg is None:
+            msg = "Download complete!"
+
+        messagebox.showinfo(title="Information", message=msg)
+
+        self.disableIOButtons(False)
+        self.disableDownloadButtons(True)
 
     # Set Status
     def setInputStatus(self, text, color="green"):

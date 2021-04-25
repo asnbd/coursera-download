@@ -3,6 +3,10 @@ import json
 import os
 import utils
 from pathlib import Path
+from bs4 import BeautifulSoup
+import re
+from urllib.parse import urljoin
+
 
 if False:
     from gui import App
@@ -14,9 +18,9 @@ class Bot:
     skipped = []
     skipped_important = []
 
-    gui = None
+    gui: "App" = None
 
-    def __init__(self, driver: Driver, course_url, output_root=None, start_week=1, get_video=True, get_reading=True,
+    def __init__(self, driver: Driver, course_url=None, output_root=None, start_week=1, get_video=True, get_reading=True,
                  get_quiz=True, get_graded_assignment=True, get_external_exercise=True, gui=None):
         # self.root = os.getcwd()
         self.root = output_root
@@ -32,7 +36,10 @@ class Bot:
 
         self.gui = gui
 
-        self.driver.loadUrl(self.home_url)
+        # self.driver.loadUrl(self.home_url)
+
+    def setCourseUrl(self, url):
+        self.home_url = url
 
     def setDownloadTopics(self, topics):
         self.get_video, self.get_reading, self.get_quiz, self.get_graded_assignment, self.get_external_exercise = topics
@@ -49,6 +56,9 @@ class Bot:
     def loadMeta(self):
         if self.isGuiAttached():
             self.gui.setFileDownloaderInfo(week="", topic="Loading Weeks...")
+
+        if not self.home_url:
+            return False
 
         weeks = self.driver.getWeeks(self.home_url)
 
@@ -117,7 +127,7 @@ class Bot:
             # print(html)
 
             # print(full_path)
-            utils.saveHtml(full_path, html)
+            utils.savePlainFile(full_path, html)
 
             print()
 
@@ -191,7 +201,7 @@ class Bot:
                             # print(html)
                             full_path = os.path.join(self.root, path, filename)
                             # print(full_path)
-                            utils.saveHtml(full_path, html)
+                            utils.savePlainFile(full_path, html)
                         pass
 
                     elif item_type == "Quiz":
@@ -203,7 +213,7 @@ class Bot:
                             print(filename)
                             # print(html)
                             full_path = os.path.join(self.root, path, filename)
-                            utils.saveHtml(full_path, html)
+                            utils.savePlainFile(full_path, html)
                         pass
                     elif item_type == "Practice Peer-graded Assignment" or item_type == "Graded Assignment":
                         if self.get_graded_assignment:
@@ -223,10 +233,10 @@ class Bot:
                             # print(res_html_submission)
 
                             full_path = os.path.join(self.root, path, filename_instructions)
-                            utils.saveHtml(full_path, res_html_instructions)
+                            utils.savePlainFile(full_path, res_html_instructions)
 
                             full_path = os.path.join(self.root, path, filename_submission)
-                            utils.saveHtml(full_path, res_html_submission)
+                            utils.savePlainFile(full_path, res_html_submission)
                         pass
                     elif item_type == "Programming Assignment":
                         if self.get_external_exercise:
@@ -268,7 +278,172 @@ class Bot:
 
         print(json.dumps(data))
 
-        return download_queue
+        return download_queue, download_queue_assignment
+
+    def downloadExternalExercise(self):
+        root = self.root
+        links = self.download_queue_assignment
+
+        if not links:
+            print("Empty Links")
+            return False
+
+        error_list = []
+        total_count = 0
+        skipped_count = 0
+        processed_count = 0
+
+        self.setGuiFileDownloaderInfo(week="Loading", topic="External Exercise", filename="", url="", output="", eta="",
+                                      speed="", dl_size="", file_size="", progress=0, current_no=0, total_files=0)
+
+        total_links = len(links)
+
+        for link_idx, item in enumerate(links):
+            path = item["path"]
+            tmp = path.split("\\")
+            week = tmp[0]
+            topic = tmp[1]
+            prefix = week.replace("Week ", "0") + topic[:2]
+
+            base_link = item["url"]
+            html = utils.getFile(base_link)
+            soup = BeautifulSoup(html, 'html.parser')
+
+            # print(soup.get_text)
+
+            title_tag = soup.find('title')
+            link_tags = soup.find_all('link')
+            script_tags = soup.find_all('script')
+            img_tags = soup.find_all('img')
+
+            title = title_tag.text
+            folder_name = prefix + "_" + utils.getFormattedFileName(title.lower().replace(" ", "_"))
+
+            resource_path = os.path.join(root, "Resources", 'html', folder_name)
+            media_path = os.path.join(root, "Resources", 'html', "media")
+
+            # index_file_name = utils.getFormattedFileName(title) + ".html"
+            index_file_name = item['filename']
+
+            # print(folder_name)
+
+            print(len(link_tags), "links(s) found")
+            print(len(script_tags), "script(s) found")
+            print(len(img_tags), "image(s) found")
+
+            # print(link_tags)
+
+            link_total_count = len(link_tags) + len(script_tags)
+            total_count += link_total_count
+
+            # print(script_tags)
+
+            for idx, link_tag in enumerate(link_tags):
+                src = link_tag.get("href")
+                url = utils.getFullUrl(base_link, src)
+                # print(url)
+
+                # Update GUI Progress
+                progress = (idx + 1) / link_total_count * 100
+                dl_size = "{} of {}".format(idx + 1, link_total_count)
+                self.setGuiFileDownloaderInfo(week=week, topic=topic, filename=index_file_name, url=url,
+                                              output=resource_path, dl_size=dl_size, file_size="", progress=progress,
+                                              current_no=link_idx + 1, total_files=total_links)
+
+                print("Link {}/{}:".format(idx + 1, len(link_tags)), end=" ")
+                if src == "":
+                    error_list.append({"error": "blank href", "path": path})
+                    print("Error: Blank href")
+                    continue
+                try:
+                    link_filename = utils.downloadFile(url, resource_path)
+                    processed_count += 1
+                    link_tag['href'] = "../../Resources/html/" + folder_name + "/" + link_filename
+                except Exception as e:
+                    print("Error:", e)
+                    error_list.append({"error": "url", "url": url, "path": path})
+                    continue
+
+            for idx, script_tag in enumerate(script_tags):
+                progress = (len(link_tags) + idx + 1) / link_total_count * 100
+                dl_size = "{} of {}".format(len(link_tags) + idx + 1, link_total_count)
+
+                # Update GUI Progress
+                self.setGuiFileDownloaderInfo(week=week, topic=topic, filename=index_file_name,
+                                              output=resource_path, dl_size=dl_size, file_size="",
+                                              progress=progress, current_no=link_idx + 1, total_files=total_links)
+
+                src = script_tag.get("src")
+                if src is None:
+                    print("External src not found. Maybe internal script. Skipping...")
+                    skipped_count += 1
+                    continue
+
+                url = utils.getFullUrl(base_link, src)
+
+                # Update GUI Progress
+                self.setGuiFileDownloaderInfo(week=week, topic=topic, filename=index_file_name, url=url,
+                                              output=resource_path, dl_size=dl_size, file_size="", progress=progress,
+                                              current_no=link_idx + 1, total_files=total_links)
+
+                print("Script {}/{}:".format(idx + 1, len(link_tags)), end=" ")
+                if src == "":
+                    error_list.append({"error": "blank src", "path": path})
+                    print("Error: Blank src")
+                    continue
+                try:
+                    if src.find("main") >= 0:
+                        js_file = utils.getFile(url).decode("utf-8")
+
+                        count_static = js_file.count("static")
+                        external_links = re.findall("(static[/a-zA-Z._0-9-@]*)", js_file)
+                        external_links_count = len(external_links)
+
+                        print("Found {} external links in main.js, now downloading".format(external_links_count))
+                        for ext_idx, external_link in enumerate(external_links):
+                            external_link_url = urljoin(base_link, external_link)
+
+                            # Update GUI Progress
+                            curr_progress = (ext_idx + 1) / len(external_links)
+                            prev_progress = (len(link_tags) + idx) / link_total_count * 100
+                            progress = prev_progress + (100 * curr_progress / link_total_count)
+                            # progress = (len(link_tags) + idx + 1 + ext_idx + 1) / (link_total_count + len(external_links)) * 100
+                            # dl_size = "{} of {}".format(len(link_tags) + idx + 1 + ext_idx + 1, link_total_count + len(external_links))
+                            dl_size = "{} of {}".format(len(link_tags) + idx + 1, link_total_count)
+                            self.setGuiFileDownloaderInfo(week=week, topic=topic, filename=index_file_name,
+                                                          url=external_link_url, output=resource_path, dl_size=dl_size,
+                                                          file_size="", progress=progress, current_no=link_idx + 1,
+                                                          total_files=total_links)
+
+                            print("External Link {}/{}:".format(ext_idx + 1, external_links_count), end=" ")
+                            utils.downloadFile(external_link_url, media_path)
+
+                        if count_static != external_links_count:
+                            print("WARNING: Downloaded {} external links but found {}".format(external_links_count,
+                                                                                              count_static))
+
+                        js_file = js_file.replace("static/", "../../Resources/html/")
+                        js_file_path = os.path.join(root, "Resources", 'html', folder_name, "main.js")
+                        link_filename = utils.savePlainFile(js_file_path, js_file)
+                    else:
+                        link_filename = utils.downloadFile(url, resource_path)
+
+                    processed_count += 1
+                    script_tag['src'] = "../../Resources/html/" + folder_name + "/" + link_filename
+                except Exception as e:
+                    print("Error:", e)
+                    error_list.append({"error": "url", "url": url, "path": path})
+                    continue
+
+            save_path = os.path.join(root, path, index_file_name)
+            utils.savePlainFile(save_path, str(soup))
+            print()
+
+        print("Total:", total_count, "file(s)")
+        print("Processed:", processed_count, "file(s)")
+        print("Skipped:", skipped_count, "file(s)")
+        print("Errors:", len(error_list))
+        print(error_list)
 
     def dumpData(self, data, download_queue, download_queue_assignment, skipped_important, skipped):
         path = "data/" + "log_" + utils.getFormattedDateTimeFile(utils.getCurrentTime().timestamp()) + "/"
@@ -295,3 +470,10 @@ class Bot:
 
     def isGuiAttached(self):
         return True if self.gui is not None else False
+
+    def setGuiFileDownloaderInfo(self, week=None, topic=None, filename=None, url=None, output=None, eta=None,
+                                 speed=None, dl_size=None, file_size=None, progress=None, current_no=0, total_files=0):
+        if self.isGuiAttached():
+            self.gui.setFileDownloaderInfo(week=week, topic=topic, filename=filename, url=url, output=output, eta=eta,
+                                           speed=speed, dl_size=dl_size, file_size=file_size, progress=progress,
+                                           current_no=current_no, total_files=total_files)
