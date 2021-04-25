@@ -539,7 +539,7 @@ class Bot:
         #     json.dump(error_list, out_file)
 
     def downloadAttachments(self):
-        attachment_downloader.download(self.root)
+        attachment_downloader.download(self.root, self.gui)
 
     def dumpData(self, data, download_queue, download_queue_assignment, skipped_important, skipped):
         path = "data/" + "log_" + utils.getFormattedDateTimeFile(utils.getCurrentTime().timestamp()) + "/"

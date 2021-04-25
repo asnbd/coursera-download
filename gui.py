@@ -130,7 +130,8 @@ class App(tk.Tk):
         self.download_video_button = tk.Button(buttons_frame, text="Download Video", state=tk.DISABLED, command=self.downloadVideoButtonAction)
         self.download_external_button = tk.Button(buttons_frame, text="External Exercise", state=tk.DISABLED, command=self.downloadExternalButtonAction)
         self.download_resource_button = tk.Button(buttons_frame, text="Resource", command=self.downloadResourceButtonAction)
-        self.download_image_button = tk.Button(buttons_frame, text="Image", command=self.downloadImageButtonAction)
+        self.download_image_button = tk.Button(buttons_frame, text="Images", command=self.downloadImageButtonAction)
+        self.download_attachment_button = tk.Button(buttons_frame, text="Attachments", command=self.downloadAttachmentButtonAction)
 
         # Status
         self.output_status_label = tk.Label(labelframe, text="", fg="green")
@@ -157,6 +158,7 @@ class App(tk.Tk):
         self.download_external_button.grid(row=0, column=2, padx=5, pady=padding_y, sticky=tk.W)
         self.download_resource_button.grid(row=0, column=3, padx=5, pady=padding_y, sticky=tk.W)
         self.download_image_button.grid(row=0, column=4, padx=5, pady=padding_y, sticky=tk.W)
+        self.download_attachment_button.grid(row=0, column=5, padx=5, pady=padding_y, sticky=tk.W)
 
     def createStatusFrame(self, root):
         labelframe = tk.LabelFrame(root, text="Status", width=600, height=100)
@@ -331,6 +333,20 @@ class App(tk.Tk):
 
         Thread(target=self.runImageDownloader).start()
 
+    def downloadAttachmentButtonAction(self):
+        output_folder = self.getOutputFolder()
+
+        if output_folder == "":
+            messagebox.showinfo(title="Information", message="Please choose output folder")
+            return
+
+        if self.bot == None:
+            self.bot = Bot(self.driver, gui=self)
+
+        self.bot.setOutputRoot(output_folder)
+
+        Thread(target=self.runAttachmentDownloader).start()
+
     def downloadResourceButtonAction(self):
         course_link = self.getCourseLink()
 
@@ -498,7 +514,19 @@ class App(tk.Tk):
 
         self.bot.downloadImages()
 
-        messagebox.showinfo(title="Information", message="Images Download Complete!")
+        messagebox.showinfo(title="Information", message="Image(s) Download Complete!")
+
+        # Enable Buttons
+        self.disableIOButtons(False)
+
+    def runAttachmentDownloader(self):
+        # Disable Buttons
+        self.disableIOButtons()
+        self.disableDownloadButtons()
+
+        self.bot.downloadAttachments()
+
+        messagebox.showinfo(title="Information", message="Attachment(s) Download Complete!")
 
         # Enable Buttons
         self.disableIOButtons(False)
