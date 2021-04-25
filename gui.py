@@ -26,8 +26,8 @@ class App(tk.Tk):
 
         # Adjust size
         # self.geometry("400x200")
-        self.maxsize(900, 600)
-        self.minsize(650, 300)
+        self.maxsize(800, 600)
+        self.minsize(800, 470)
 
         # Create left and right frames
         top_frame = self.createTopFrame()
@@ -38,6 +38,7 @@ class App(tk.Tk):
         self.createOutputFrame(top_frame)
 
         # Create frames on right frame
+        # self.createStatusFrame(bottom_frame)
         self.createFileDownloaderFrame(bottom_frame)
 
     ###################################################################################################################
@@ -65,6 +66,8 @@ class App(tk.Tk):
         self.load_button = tk.Button(labelframe, text="Load", width=8)
         self.load_button.config(command=self.loadButtonAction)
 
+        self.input_status_label = tk.Label(labelframe, text="", fg="green")
+
         # self.get_video_check_var = tk.IntVar(value=1)
         # self.get_reading_check_var = tk.IntVar(value=1)
         # self.get_quiz_check_var = tk.IntVar(value=1)
@@ -81,6 +84,7 @@ class App(tk.Tk):
         course_link_label.grid(row=0, column=0, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
         self.course_link_entry.grid(row=0, column=1, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
         self.load_button.grid(row=0, column=2, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
+        self.input_status_label.grid(row=1, column=1, padx=5, pady=padding_y - 3, sticky=tk.W + tk.S + tk.N)
 
         # Checkboxes Frame
         # checkboxes_frame.grid(row=1, column=1, pady=padding_y + 2, sticky=tk.S + tk.N + tk.W)
@@ -103,9 +107,7 @@ class App(tk.Tk):
                 self.output_folder_var.set(folder_selected)
 
         browse_button = tk.Button(labelframe, text="Browse", width=8, command=browseFolder)
-        self.download_button = tk.Button(labelframe, text="Download", state=tk.DISABLED, width=8, command=self.downloadButtonAction)
-        self.download_video_button = tk.Button(labelframe, text="Download Video", command=self.downloadVideoButtonAction)
-        self.download_resource_button = tk.Button(labelframe, text="Download Resource", command=self.downloadResourceButtonAction)
+
         # browse_button.config(command=browseFolder)
 
         self.get_video_check_var = tk.IntVar(value=1)
@@ -121,29 +123,57 @@ class App(tk.Tk):
         get_graded_check_box = tk.Checkbutton(checkboxes_frame, text="Peer Graded", variable=self.get_graded_check_var)
         get_external_check_box = tk.Checkbutton(checkboxes_frame, text="External Exercise", variable=self.get_external_check_var)
 
+        # Button Group
+        buttons_frame = tk.Frame(labelframe)
+        self.scrape_button = tk.Button(buttons_frame, text="Scrape", state=tk.DISABLED, width=8, command=self.scrapeButtonAction)
+        self.download_video_button = tk.Button(buttons_frame, text="Download Video", state=tk.DISABLED, command=self.downloadVideoButtonAction)
+        self.download_external_button = tk.Button(buttons_frame, text="External Exercise", state=tk.DISABLED, command=self.downloadExternalButtonAction)
+        self.download_resource_button = tk.Button(buttons_frame, text="Resource", command=self.downloadResourceButtonAction)
+
+        # Status
+        self.output_status_label = tk.Label(labelframe, text="", fg="green")
+
         padding_y = 3
 
         output_folder_label.grid(row=0, column=0, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
         output_folder_entry.grid(row=0, column=1, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
         browse_button.grid(row=0, column=2, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
-        self.download_button.grid(row=1, column=2, padx=5, pady=padding_y + 2, sticky=tk.N)
-        self.download_video_button.grid(row=2, column=2, padx=5, pady=padding_y + 2, sticky=tk.N)
-        self.download_resource_button.grid(row=3, column=2, padx=5, pady=padding_y + 2, sticky=tk.N)
+        checkboxes_frame.grid(row=1, column=1, pady=padding_y + 2, sticky=tk.S + tk.N + tk.W)
+        buttons_frame.grid(row=2, column=1, padx=5, pady=padding_y, sticky=tk.W)
+        self.output_status_label.grid(row=3, column=1, padx=5, pady=0, sticky=tk.W)
 
         # Checkboxes Frame
-        checkboxes_frame.grid(row=1, column=1, pady=padding_y + 2, sticky=tk.S + tk.N + tk.W)
         get_video_check_box.grid(row=0, column=0, padx=5, sticky=tk.S + tk.N + tk.W)
         get_reading_check_box.grid(row=0, column=1, padx=5, sticky=tk.S + tk.N + tk.W)
         get_quiz_check_box.grid(row=0, column=2, padx=5, sticky=tk.S + tk.N + tk.W)
         get_graded_check_box.grid(row=0, column=3, padx=5, sticky=tk.S + tk.N + tk.W)
         get_external_check_box.grid(row=0, column=4, padx=5, sticky=tk.S + tk.N + tk.W)
 
-    def createFileDownloaderFrame(self, root):
-        labelframe = tk.LabelFrame(root, text="File Downloader", width=600, height=300)
+        # Buttons Frame
+        self.scrape_button.grid(row=0, column=0, padx=5, pady=padding_y, sticky=tk.N)
+        self.download_video_button.grid(row=0, column=1, padx=5, pady=padding_y, sticky=tk.W)
+        self.download_external_button.grid(row=0, column=2, padx=5, pady=padding_y, sticky=tk.W)
+        self.download_resource_button.grid(row=0, column=3, padx=5, pady=padding_y, sticky=tk.W)
+
+    def createStatusFrame(self, root):
+        labelframe = tk.LabelFrame(root, text="Status", width=600, height=100)
         labelframe.pack(fill="x", expand="yes")
 
-        self.week_label = tk.Label(labelframe, text="")
-        self.topic_label = tk.Label(labelframe, text="")
+        self.status_label_line_1 = tk.Label(labelframe, text="Downloading")
+        self.status_label_line_2 = tk.Label(labelframe, text="Data")
+
+        padding_y = 0
+
+        self.status_label_line_1.grid(row=0, column=0, padx=5, pady=padding_y, sticky=tk.W)
+        self.status_label_line_2.grid(row=1, column=0, padx=5, pady=padding_y, sticky=tk.W)
+
+
+    def createFileDownloaderFrame(self, root):
+        labelframe = tk.LabelFrame(root, text="File Downloader", width=600, height=500)
+        labelframe.pack(fill="x", expand="yes")
+
+        self.week_label = tk.Label(labelframe, text="", fg="green")
+        self.topic_label = tk.Label(labelframe, text="", fg="green")
 
         filename_label = tk.Label(labelframe, text="Filename: ")
         self.filename_val_label = tk.Label(labelframe, text="")
@@ -227,19 +257,18 @@ class App(tk.Tk):
             messagebox.showinfo(title="Information", message="Please enter course link")
             return
 
-        download_topics = self.getDownloadTopics()
-
         if self.driver == None:
             self.driver = Driver("main")
 
         if self.bot == None:
             self.bot = Bot(self.driver, course_link, start_week=1, gui=self)
 
+        download_topics = self.getDownloadTopics()
         self.bot.setDownloadTopics(download_topics)
 
         self.loadMetaData()
 
-    def downloadButtonAction(self):
+    def scrapeButtonAction(self):
         output_folder = self.getOutputFolder()
 
         if output_folder == "":
@@ -250,6 +279,9 @@ class App(tk.Tk):
             self.bot.setOutputRoot(output_folder)
         else:
             messagebox.showinfo(title="Information", message="Bot not loaded!")
+
+        download_topics = self.getDownloadTopics()
+        self.bot.setDownloadTopics(download_topics)
 
         if self.meta_data:
             self.downloadHtmlAndGetVideoQueue()
@@ -271,6 +303,27 @@ class App(tk.Tk):
         self.disableDownloadVideoButton(True)
         Thread(target=self.runVideoDownloader).start()
         # self.downloadStatusLoop()
+
+    def downloadExternalButtonAction(self):
+        output_folder = self.getOutputFolder()
+        pass
+        #
+        # if output_folder == "":
+        #     messagebox.showinfo(title="Information", message="Please choose output folder")
+        #     return
+        #
+        # if self.driver == None:
+        #     self.driver = Driver("main")
+        #
+        # self.bot.setOutputRoot(output_folder)
+        #
+        # # self.disableSkipButton(False)
+        # # self.disablePauseButton(False)
+        # # self.disableCancelButton(False)
+        # # self.disableDownloadVideoButton(True)
+        #
+        # Thread(target=self.bot.downloadResources).start()
+        # # self.downloadStatusLoop()
 
     def downloadResourceButtonAction(self):
         course_link = self.getCourseLink()
@@ -348,21 +401,54 @@ class App(tk.Tk):
     """" Thread Functions """
     ###################################################################################################################
     def loadMetaData(self):
+        # self.disableButton(self.load_button, True)
         Thread(target=self.runLoadMetaThread).start()
 
     def runLoadMetaThread(self):
+        self.disableButtons(self.load_button, self.scrape_button, self.download_video_button,
+                            self.download_external_button, self.download_resource_button,
+                            self.pause_resume_btn, self.skip_btn, self.cancel_btn)
+
+        self.setInputStatus("Loading Metadata...", color="red")
         self.meta_data = self.bot.loadMeta()
         print(self.meta_data)
-        self.download_button.config(state="normal")
+
+        item_count = 0
+
+        for week in self.meta_data:
+            for topic in week['topics']:
+                item_count += len(topic['items'])
+
+        # self.scrape_button.config(state="normal")
+        self.disableButtons(self.scrape_button, self.load_button, val=False)
+
+        self.setInputStatus("Loaded {} weeks with {} topics..".format(len(self.meta_data), item_count))
+
         messagebox.showinfo(title="Information", message="Meta data loaded!")
+
+        self.disableButtons(self.load_button, self.scrape_button, self.download_resource_button, val=False)
 
     def downloadHtmlAndGetVideoQueue(self):
         Thread(target=self.runDownloadHtmlAndGetVideoQueue).start()
 
     def runDownloadHtmlAndGetVideoQueue(self):
+        self.setOutputStatus("Scraping...", color="red")
+
+        self.disableButtons(self.load_button, self.scrape_button, self.download_video_button,
+                            self.download_external_button, self.download_resource_button,
+                            self.pause_resume_btn, self.skip_btn, self.cancel_btn)
+
         self.download_queue = self.bot.downloadHtmlAndGetVideoQueue(self.meta_data)
         print(self.download_queue)
-        self.download_button.config(state="normal")
+
+        self.setOutputStatus("Downloaded HTMLs & Loaded {} videos in the queue".format(len(self.download_queue)), color="green")
+
+        self.disableButtons(self.load_button, self.scrape_button, self.download_video_button,
+                            self.download_external_button, self.download_resource_button, val=False)
+
+        # self.scrape_button.config(state="normal")
+        # self.download_external_button.config(state="normal")
+
         messagebox.showinfo(title="Information", message="HTML Downloaded and Video Download Queue Generated")
 
     def runVideoDownloader(self):
@@ -486,6 +572,20 @@ class App(tk.Tk):
                                    eta="", speed="", dl_size="", file_size="",
                                    progress=0, current_no=0, total_files=0)
 
+    # Button Disable
+    def disableButton(self, button, val=True):
+        if val:
+            button.config(state="disabled")
+        else:
+            button.config(state="normal")
+
+    def disableButtons(self, *argv, val=True):
+        for button in argv:
+            if val:
+                button.config(state="disabled")
+            else:
+                button.config(state="normal")
+
     def disableDownloadVideoButton(self, val):
         if val:
             self.download_video_button.config(state="disabled")
@@ -510,12 +610,31 @@ class App(tk.Tk):
         else:
             self.cancel_btn.config(state="normal")
 
+    # Set Status
+    def setInputStatus(self, text, color="green"):
+        self.input_status_label.config(text=text, fg=color)
+
+    def setOutputStatus(self, text, color="green"):
+        self.output_status_label.config(text=text, fg=color)
+
+    ###################################################################################################################
+    """" Utility Functions """
+    ###################################################################################################################
     def fitText(self, text, width=100):
         if text and width and len(text) > width:
             text = text[:width - 3] + '...'
 
         return text
 
+    ###################################################################################################################
+    """" Other Functions """
+    ###################################################################################################################
+    def destroy(self):
+        super().destroy()
+        if self.driver is not None:
+            print("Closing Browser...")
+            self.driver.closeBrowser()
+            print("Closed Browser")
 
 if __name__ == "__main__":
     app = App("Coursera Downloader")
