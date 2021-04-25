@@ -445,6 +445,71 @@ class Bot:
         print("Errors:", len(error_list))
         print(error_list)
 
+    def downloadImages(self):
+        root = self.root
+        error_list = []
+        total_count = 0
+        skipped_count = 0
+        processed_count = 0
+
+        img_path = os.path.join(root, "Resources", "html", "img")
+
+        for path, subdirs, files in os.walk(root):
+            for name in files:
+                if name.endswith(".html"):
+                    fpath = os.path.join(path, name)
+                    print("Loading:", fpath)
+
+                    f = open(fpath, "r", encoding='utf-8')
+                    html_text = f.read()
+                    f.close()
+                    soup = BeautifulSoup(html_text, 'html.parser')
+                    # print(soup.get_text)
+                    imgTags = soup.find_all('img')
+                    print(len(imgTags), "image(s) found")
+                    file_modified = False
+                    total_count += len(imgTags)
+
+                    new_img_src = "../../Resources"
+
+                    if fpath.find("{}Resources{}".format(os.path.sep, os.path.sep)) >= 0:
+                        new_img_src = "../Resources"
+
+                    for idx, img in enumerate(imgTags):
+                        imgUrl = img.get('src')
+                        print("Image {}/{}:".format(idx + 1, len(imgTags)), end=" ")
+                        if imgUrl.find(new_img_src) >= 0:
+                            print("Already processed. Skipping...")
+                            skipped_count += 1
+                            continue
+                        elif imgUrl == "":
+                            error_list.append({"error": "blank img src", "path": fpath})
+                            print("Error: Blank img src")
+                            continue
+                        # print(imgUrl)
+                        try:
+                            imgFilename = utils.downloadFile(imgUrl, img_path)
+                            file_modified = True
+                            processed_count += 1
+                            img['src'] = new_img_src + "/html/img/" + imgFilename
+                        except Exception as e:
+                            print("Error:", e)
+                            error_list.append({"error": "url", "url": imgUrl, "path": fpath})
+                            continue
+
+                    if file_modified:
+                        utils.savePlainFile(fpath, str(soup))
+                    print()
+
+        print("Total:", total_count, "image(s)")
+        print("Processed:", processed_count, "image(s)")
+        print("Skipped:", skipped_count, "image(s)")
+        print("Errors:", len(error_list))
+        print(error_list)
+
+        # with open("data/img_errors.json", "w") as out_file:
+        #     json.dump(error_list, out_file)
+
     def dumpData(self, data, download_queue, download_queue_assignment, skipped_important, skipped):
         path = "data/" + "log_" + utils.getFormattedDateTimeFile(utils.getCurrentTime().timestamp()) + "/"
 

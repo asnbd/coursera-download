@@ -6,10 +6,8 @@ from urllib.parse import urlparse
 import json
 from pathlib import Path
 
-root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test\\Test1"
-# path = os.path.join(root, "targetdirectory")
 
-def files():
+def download(root):
     error_list = []
     total_count = 0
     skipped_count = 0
@@ -89,6 +87,7 @@ def downloadFile(url):
 
     return filename
 
+
 def saveHtml(path, html):
     # print(html)
     file = open(path, "w", encoding='utf-8')
@@ -99,5 +98,8 @@ def saveHtml(path, html):
 
 if __name__ == '__main__':
     print("main")
-    files()
+    root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test\\Test1"
+    # path = os.path.join(root, "targetdirectory")
+
+    download(root)
 
