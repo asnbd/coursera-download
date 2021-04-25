@@ -69,7 +69,7 @@ def files():
                     attach_filename = attachment_tag.text
                     attach_filename = utils.getFormattedFileName(attach_filename)
                     print("Attachment {}/{}:".format(idx+1, len(attachment_tags)), end=" ")
-                    if attach_href.find("../../Resources") >= 0:
+                    if attach_href.find(new_attachment_href) >= 0:
                         print("Already processed. Skipping...")
                         skipped_count += 1
                         continue
@@ -81,7 +81,7 @@ def files():
                         attah_filename = downloadFile(attach_href, attach_filename)
                         file_modified = True
                         processed_count += 1
-                        attachment_tag['href'] = "../../Resources/attachments/" + attah_filename
+                        attachment_tag['href'] = new_attachment_href + "/attachments/" + attah_filename
                     except Exception as e:
                         print("Error:", e)
                         error_list.append({"error": "url", "url": attach_href, "path": fpath})
