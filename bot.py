@@ -454,9 +454,21 @@ class Bot:
 
         img_path = os.path.join(root, "Resources", "html", "img")
 
+        self.setGuiFileDownloaderInfo(week="Searching", topic="All html files", filename="", url="", output="", eta="",
+                                      speed="", dl_size="", file_size="", progress=0, current_no=0, total_files=0)
+
+        html_file_count = 0
         for path, subdirs, files in os.walk(root):
             for name in files:
                 if name.endswith(".html"):
+                    html_file_count += 1
+
+        current_file_idx = 0
+        for path, subdirs, files in os.walk(root):
+            for name in files:
+                if name.endswith(".html"):
+                    current_file_idx += 1
+
                     fpath = os.path.join(path, name)
                     print("Loading:", fpath)
 
@@ -475,8 +487,23 @@ class Bot:
                     if fpath.find("{}Resources{}".format(os.path.sep, os.path.sep)) >= 0:
                         new_img_src = "../Resources"
 
+                    if len(imgTags) == 0:
+                        # Update GUI Progress
+                        dl_size = "{} of {}".format(0, len(imgTags))
+                        self.setGuiFileDownloaderInfo(week="Loading", topic="", filename=name, url="", output=fpath,
+                                                      dl_size=dl_size, file_size="", progress=100,
+                                                      current_no=current_file_idx, total_files=html_file_count)
+
                     for idx, img in enumerate(imgTags):
                         imgUrl = img.get('src')
+
+                        # Update GUI Progress
+                        progress = (idx + 1) / len(imgTags) * 100
+                        dl_size = "{} of {}".format(idx + 1, len(imgTags))
+                        self.setGuiFileDownloaderInfo(week="Loading", topic="", filename=name, url=imgUrl, output=fpath,
+                                                      dl_size=dl_size, file_size="", progress=progress,
+                                                      current_no=current_file_idx, total_files=html_file_count)
+
                         print("Image {}/{}:".format(idx + 1, len(imgTags)), end=" ")
                         if imgUrl.find(new_img_src) >= 0:
                             print("Already processed. Skipping...")
