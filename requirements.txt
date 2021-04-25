@@ -1,4 +1,5 @@
 requests
 pySmartDL
+beautifulsoup4
 selenium
 tk
