@@ -340,8 +340,9 @@ class App(tk.Tk):
         get_reading = True if self.get_reading_check_var.get() else False
         get_quiz = True if self.get_quiz_check_var.get() else False
         get_graded_assignment = True if self.get_graded_check_var.get() else False
+        get_external_exercise = True if self.get_external_check_var.get() else False
 
-        return get_video, get_reading, get_quiz, get_graded_assignment
+        return get_video, get_reading, get_quiz, get_graded_assignment, get_external_exercise
 
     ###################################################################################################################
     """" Thread Functions """

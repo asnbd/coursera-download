@@ -16,7 +16,8 @@ class Bot:
 
     gui = None
 
-    def __init__(self, driver: Driver, course_url, output_root=None, start_week=1, get_video=True, get_reading=True, get_quiz=True, get_graded_assignment=True, gui=None):
+    def __init__(self, driver: Driver, course_url, output_root=None, start_week=1, get_video=True, get_reading=True,
+                 get_quiz=True, get_graded_assignment=True, get_external_exercise=True, gui=None):
         # self.root = os.getcwd()
         self.root = output_root
         self.home_url = course_url
@@ -27,13 +28,14 @@ class Bot:
         self.get_reading = get_reading
         self.get_quiz = get_quiz
         self.get_graded_assignment = get_graded_assignment
+        self.get_external_exercise = get_external_exercise
 
         self.gui = gui
 
         self.driver.loadUrl(self.home_url)
 
     def setDownloadTopics(self, topics):
-        self.get_video, self.get_reading, self.get_quiz, self.get_graded_assignment = topics
+        self.get_video, self.get_reading, self.get_quiz, self.get_graded_assignment, self.get_external_exercise = topics
 
     def setOutputRoot(self, output_root):
         self.root = output_root
@@ -227,15 +229,15 @@ class Bot:
                             utils.saveHtml(full_path, res_html_submission)
                         pass
                     elif item_type == "Programming Assignment":
-                        assignment_url = self.driver.getAssignmentFrame(item['url'])
-                        filename = str(index).zfill(2) + ". " + item['title']
-                        filename = utils.getFormattedFileName(filename) + ".html"
-                        print(path)
-                        print(filename)
-                        download_queue_assignment.append({"path": path, "filename": filename, "url": assignment_url, "ref": item['url']})
-                        skipped_important.append(
-                            {"type": item_type, "path": path, "title": item['title'], "url": item['url']})
-                        pass
+                        if self.get_external_exercise:
+                            assignment_url = self.driver.getAssignmentFrame(item['url'])
+                            filename = str(index).zfill(2) + ". " + item['title']
+                            filename = utils.getFormattedFileName(filename) + ".html"
+                            print(path)
+                            print(filename)
+                            download_queue_assignment.append({"path": path, "filename": filename, "url": assignment_url, "ref": item['url']})
+                            skipped_important.append(
+                                {"type": item_type, "path": path, "title": item['title'], "url": item['url']})
                     else:
                         skipped.append({"type": item_type, "path": path, "title": item['title'], "url": item['url']})
                         continue
