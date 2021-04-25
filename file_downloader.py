@@ -6,6 +6,9 @@ from pathlib import Path
 from pySmartDL import SmartDL
 import time
 
+if False:
+    from gui import App
+
 class FileDownloader:
     current_download_no = 0
     current_download_item = None
@@ -14,13 +17,13 @@ class FileDownloader:
 
     stop_queue = False
 
-    def __init__(self, root):
+    def __init__(self, root, gui: "App" = None):
         self.download_queue = []
         self.downloading = []
         self.success = []
         self.error = []
         self.download_root = root
-        pass
+        self.gui = gui
 
     def loadQueueFromJson(self, filename):
         with open(filename, "r") as json_file:
@@ -43,23 +46,13 @@ class FileDownloader:
             i += 1
 
     def downloadFile(self, url, filename, path):
-        # response = requests.get(url)
-        # # print(response.headers)
-        # # filename = os.path.basename(urlparse(url).path)
-        # # print(filename)
         fullpath = os.path.join(self.download_root, path, filename)
         fullpath = os.path.normpath(fullpath)
         Path(os.path.dirname(fullpath)).mkdir(parents=True, exist_ok=True)
-        # print(path)
-        # file = open(path, "wb")
-        # file.write(response.content)
-        # file.close()
 
         print()
         print("Downloading:", url)
         print("To:", fullpath)
-
-        # download(url=url, path=fullpath)
 
         obj = SmartDL(url, fullpath)
         obj.start()
@@ -77,6 +70,8 @@ class FileDownloader:
             if self.stop_queue:
                 self.stop_queue = False
                 return
+
+        self.gui.showDownloadCompleteDialog()
 
     def downloadFileGui(self, url, filename, path):
         fullpath = os.path.join(self.download_root, path, filename)
@@ -154,8 +149,11 @@ class FileDownloader:
 
         return False
 
-    def attachGUI(self, gui):
+    def attachGUI(self, gui: "App"):
         self.gui = gui
+
+    def isGuiAttached(self):
+        return True if self.gui is not None else False
 
 
 if __name__ == "__main__":
@@ -164,6 +162,3 @@ if __name__ == "__main__":
 
     downloader.loadQueueFromJson("data/log_20210424_031453/download_queue.json")
     downloader.startDownload()
-    #
-    # download(url='http://download.thinkbroadband.com/200MB.zip',
-    #          path='/big.zip')
