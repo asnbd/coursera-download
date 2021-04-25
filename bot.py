@@ -4,6 +4,9 @@ import os
 import utils
 from pathlib import Path
 
+if False:
+    from gui import App
+
 class Bot:
     meta_data = []
     download_queue = []
@@ -11,7 +14,9 @@ class Bot:
     skipped = []
     skipped_important = []
 
-    def __init__(self, driver: Driver, course_url, output_root=None, start_week=1, get_video=True, get_reading=True, get_quiz=True, get_graded_assignment=True):
+    gui = None
+
+    def __init__(self, driver: Driver, course_url, output_root=None, start_week=1, get_video=True, get_reading=True, get_quiz=True, get_graded_assignment=True, gui=None):
         # self.root = os.getcwd()
         self.root = output_root
         self.home_url = course_url
@@ -22,6 +27,8 @@ class Bot:
         self.get_reading = get_reading
         self.get_quiz = get_quiz
         self.get_graded_assignment = get_graded_assignment
+
+        self.gui = gui
 
         self.driver.loadUrl(self.home_url)
 
@@ -38,16 +45,31 @@ class Bot:
         self.downloadHtmlAndGetVideoQueue(data)
 
     def loadMeta(self):
+        if self.isGuiAttached():
+            self.gui.setFileDownloaderInfo(week="", topic="Loading Weeks...")
+
         weeks = self.driver.getWeeks(self.home_url)
 
         print(weeks)
 
         data = []
 
+        total_weeks = len(weeks)
+
+        if self.isGuiAttached():
+            self.gui.setFileDownloaderInfo(week="", topic="Loading Metadata...")
+
         for week_idx, week in enumerate(weeks):
+            # if self.isGuiAttached():
+            #     self.gui.setFileDownloaderInfo(week=week['title'], progress=1, current_no=week_idx+1, total_files=total_weeks)
+
+            if self.isGuiAttached():
+                self.gui.setFileDownloaderInfo(week=week['title'], progress=0, current_no=week_idx+1, total_files=total_weeks)
+
             if self.start_week > week_idx + 1:
                 print("Skipping Week", week_idx + 1)
                 continue
+
             print(week['title'])
             topics = self.driver.getTopics(week['url'])
             print(topics)
@@ -57,6 +79,9 @@ class Bot:
             data.append(week)
 
         self.meta_data = data
+
+        if self.isGuiAttached():
+            self.gui.setFileDownloaderInfo(topic="Metadata Loaded!", progress=100, current_no=total_weeks, total_files=total_weeks)
 
         return data
 
@@ -94,18 +119,40 @@ class Bot:
         skipped = []
         skipped_important = []
 
+        item_count = [0 for i in data]
+
+        for w_idx, week in enumerate(data):
+            for topic in week['topics']:
+                item_count[w_idx] += len(topic['items'])
+
+        current_total_item_no = 0
         for week_idx, week in enumerate(data):
             # if start_week > week_idx + 1:
             #     print("Skipping Week", week_idx + 1)
             #     continue
 
             topic_index = 1
+            current_week_item_no = 0
             for topic in week["topics"]:
                 path = os.path.join(week['title'],
                                     str(topic_index).zfill(2) + ". " + utils.getFormattedFileName(topic['title']))
                 index = 1
                 for item in topic["items"]:
+                    current_week_item_no += 1
+                    current_total_item_no += 1
+
                     item_type = item['type']
+
+                    if self.isGuiAttached():
+                        dl_topic = "{}. {}".format(str(topic_index).zfill(2), topic['title'])
+                        dl_title = "{}. {}: {}".format(str(index).zfill(2), item_type, item['title'])
+
+                        progress = current_week_item_no / item_count[week_idx] * 100
+                        dl_size = "{} of {} item(s)".format(current_week_item_no, item_count[week_idx])
+                        self.gui.setFileDownloaderInfo(week=week['title'], topic=dl_topic, progress=progress,
+                                                       filename=dl_title,  dl_size=dl_size, url=item['url'],
+                                                       output=path, current_no=current_total_item_no, total_files=sum(item_count))
+
                     if item_type == "Video":
                         if self.get_video:
                             video_url, captions_url = self.driver.getVideo(item['url'])
@@ -226,3 +273,9 @@ class Bot:
 
         with open(path + 'skipped.json', 'w') as outfile:
             json.dump(skipped, outfile)
+
+    def attachGUI(self, gui: "App"):
+        self.gui = gui
+
+    def isGuiAttached(self):
+        return True if self.gui is not None else False

@@ -230,7 +230,7 @@ class App(tk.Tk):
             self.driver = Driver("main")
 
         if self.bot == None:
-            self.bot = Bot(self.driver, course_link, start_week=1)
+            self.bot = Bot(self.driver, course_link, start_week=1, gui=self)
 
         self.bot.setDownloadTopics(download_topics)
 
@@ -286,7 +286,7 @@ class App(tk.Tk):
             self.driver = Driver("main")
 
         if self.bot == None:
-            self.bot = Bot(self.driver, course_link)
+            self.bot = Bot(self.driver, course_link, gui=self)
 
         self.bot.setOutputRoot(output_folder)
 
