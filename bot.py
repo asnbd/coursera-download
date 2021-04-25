@@ -86,28 +86,42 @@ class Bot:
         return data
 
     def downloadResources(self):
+        if self.isGuiAttached():
+            self.gui.setFileDownloaderInfo(week="Fetching", topic="Resources")
+
         respurce_url = self.home_url.replace("home/welcome", "resources")
         resource_items = self.driver.getResourceLinks(respurce_url)
 
         print(resource_items)
         resource_path = "Resources"
 
+        total_items = len(resource_items)
+
         for res_idx, item in enumerate(resource_items):
+            filename = str(res_idx + 1).zfill(2) + ". " + item['title']
+            filename = utils.getFormattedFileName(filename) + ".html"
+            full_path = os.path.join(self.root, resource_path, filename)
+
+            if self.isGuiAttached():
+                self.gui.setFileDownloaderInfo(week="Loading", topic="Resources", filename=item['title'], url=item['url'],
+                                               output=full_path, progress=0, current_no=res_idx+1, total_files=total_items)
             item_type = item['type']
 
             # if item_type == "Reading":
 
             html = self.driver.getResource(item['title'], item['url'])
-            filename = str(res_idx + 1).zfill(2) + ". " + item['title']
-            filename = utils.getFormattedFileName(filename) + ".html"
             print("Resource {}/{}:".format(res_idx + 1, len(resource_items)), end=" ")
             print(filename)
             # print(html)
-            full_path = os.path.join(self.root, resource_path, filename)
+
             # print(full_path)
             utils.saveHtml(full_path, html)
 
             print()
+
+        if self.isGuiAttached():
+            self.gui.setFileDownloaderInfo(week="Done", topic="Resource Downloaded!",
+                                           progress=100, current_no=total_items, total_files=total_items)
 
         print("Resource Download Finished")
 

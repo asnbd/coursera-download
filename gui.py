@@ -330,7 +330,7 @@ class App(tk.Tk):
         return self.course_link_entry.get()
 
     def getOutputFolder(self):
-        return self.output_folder_var.get()
+        return os.path.normpath(self.output_folder_var.get()) if self.output_folder_var.get() != "" else ""
 
     def getDownloadTopics(self):
         get_video = True if self.get_video_check_var.get() else False
