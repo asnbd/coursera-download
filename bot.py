@@ -6,6 +6,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 import re
 from urllib.parse import urljoin
+import attachment_downloader
 
 
 if False:
@@ -536,6 +537,9 @@ class Bot:
 
         # with open("data/img_errors.json", "w") as out_file:
         #     json.dump(error_list, out_file)
+
+    def downloadAttachments(self):
+        attachment_downloader.download(self.root)
 
     def dumpData(self, data, download_queue, download_queue_assignment, skipped_important, skipped):
         path = "data/" + "log_" + utils.getFormattedDateTimeFile(utils.getCurrentTime().timestamp()) + "/"

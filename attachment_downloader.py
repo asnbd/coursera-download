@@ -1,20 +1,16 @@
-import sys
 import os
-import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
 import json
-from pathlib import Path
 import utils
 
-root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test\\Test1"
-# path = os.path.join(root, "targetdirectory")
 
-def files():
+def download(root):
     error_list = []
     total_count = 0
     skipped_count = 0
     processed_count = 0
+
+    attachments_path = os.path.join(root, "Resources", "attachments")
 
     for path, subdirs, files in os.walk(root):
         for name in files:
@@ -55,7 +51,7 @@ def files():
                         print("Error: Blank href")
                         continue
                     try:
-                        attah_filename = downloadFile(attach_href, attach_filename)
+                        attah_filename = utils.downloadFile(attach_href, attachments_path, attach_filename)
                         file_modified = True
                         processed_count += 1
                         attachment_tag['href'] = new_attachment_href + "/attachments/" + attah_filename
@@ -78,7 +74,7 @@ def files():
                         print("Error: Blank href")
                         continue
                     try:
-                        attah_filename = downloadFile(attach_href, attach_filename)
+                        attah_filename = utils.downloadFile(attach_href, attachments_path, attach_filename)
                         file_modified = True
                         processed_count += 1
                         attachment_tag['href'] = new_attachment_href + "/attachments/" + attah_filename
@@ -88,7 +84,7 @@ def files():
                         continue
 
                 if file_modified:
-                    saveHtml(fpath, str(soup))
+                    utils.savePlainFile(fpath, str(soup))
                 print()
 
     print("Total:", total_count, "attachment(s)")
@@ -101,30 +97,10 @@ def files():
         json.dump(error_list, out_file)
 
 
-def downloadFile(url, filename):
-    print("Downloading:", url)
-    response = requests.get(url)
-    # print(response.headers)
-    # filename = os.path.basename(urlparse(url).path)
-    # print(filename)
-    path = os.path.join(root, "Resources", "attachments", filename)
-    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
-    print("Downloaded To:", path)
-    file = open(path, "wb")
-    file.write(response.content)
-    file.close()
-
-    return filename
-
-def saveHtml(path, html):
-    # print(html)
-    file = open(path, "w", encoding='utf-8')
-    file.write(html)
-    file.close()
-    print("Saved: ", path)
-
-
 if __name__ == '__main__':
+    root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test\\Test1"
+    # path = os.path.join(root, "targetdirectory")
+
     print("main")
-    files()
+    download(root)
 
