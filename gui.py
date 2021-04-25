@@ -112,12 +112,14 @@ class App(tk.Tk):
         self.get_reading_check_var = tk.IntVar(value=1)
         self.get_quiz_check_var = tk.IntVar(value=1)
         self.get_graded_check_var = tk.IntVar(value=1)
+        self.get_external_check_var = tk.IntVar(value=1)
 
         checkboxes_frame = tk.Frame(labelframe)
         get_video_check_box = tk.Checkbutton(checkboxes_frame, text="Video", variable=self.get_video_check_var)
         get_reading_check_box = tk.Checkbutton(checkboxes_frame, text="Reading", variable=self.get_reading_check_var)
         get_quiz_check_box = tk.Checkbutton(checkboxes_frame, text="Quiz", variable=self.get_quiz_check_var)
-        get_graded_check_box = tk.Checkbutton(checkboxes_frame, text="Peer Graded Assignment", variable=self.get_graded_check_var)
+        get_graded_check_box = tk.Checkbutton(checkboxes_frame, text="Peer Graded", variable=self.get_graded_check_var)
+        get_external_check_box = tk.Checkbutton(checkboxes_frame, text="External Exercise", variable=self.get_external_check_var)
 
         padding_y = 3
 
@@ -134,6 +136,7 @@ class App(tk.Tk):
         get_reading_check_box.grid(row=0, column=1, padx=5, sticky=tk.S + tk.N + tk.W)
         get_quiz_check_box.grid(row=0, column=2, padx=5, sticky=tk.S + tk.N + tk.W)
         get_graded_check_box.grid(row=0, column=3, padx=5, sticky=tk.S + tk.N + tk.W)
+        get_external_check_box.grid(row=0, column=4, padx=5, sticky=tk.S + tk.N + tk.W)
 
     def createFileDownloaderFrame(self, root):
         labelframe = tk.LabelFrame(root, text="File Downloader", width=600, height=300)
