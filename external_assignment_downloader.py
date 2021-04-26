@@ -1,4 +1,3 @@
-import sys
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -9,10 +8,8 @@ import utils
 from urllib.parse import urljoin
 import re
 
-root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test2"
 
-
-def download(links):
+def download(root, links):
     if not links:
         print("Empty Links")
         return False
@@ -178,8 +175,10 @@ def getFullUrl(base, url):
 if __name__ == '__main__':
     print("main")
 
-    with open("data/log_20210425_020138/download_queue_assignment.json", "r") as json_file:
+    root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test\\Test1"
+
+    with open("data/log_20210425_044352/download_queue_assignment.json", "r") as json_file:
         links = json.load(json_file)
         print("Loaded", len(links), "item(s)")
 
-    download(links)
+    download(root, links)

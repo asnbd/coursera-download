@@ -132,5 +132,3 @@ chromedriver_win32/
 profiles/
 data/
 geckodriver.log
-tst.py
-cdl.py
