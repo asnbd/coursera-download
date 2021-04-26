@@ -63,12 +63,19 @@ class Bot:
             if self.isGuiAttached():
                 self.gui.setInputStatus("Log in required!", color="red")
                 self.gui.showMessageDialog("Please login and then press OK.")
+            else:
+                print("Log in required!")
+                input("Please login and then press Enter.")
 
         while not self.driver.isLoggedIn():
             if self.isGuiAttached():
                 res = self.gui.askOkCancelDialog("Please login and then press OK to start loading. Otherwise press cancel.")
-                if not res:
-                    return False
+            else:
+                inp = input("Please login and then press Enter to start loading. Otherwise type N to cancel.")
+                res = False if inp != "" else True
+
+            if not res:
+                return False
 
         if self.isGuiAttached():
             self.gui.setInputStatus("Loading metadata...", color="blue")
