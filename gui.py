@@ -132,6 +132,7 @@ class App(tk.Tk):
         self.download_resource_button = tk.Button(buttons_frame, text="Resource", command=self.downloadResourceButtonAction)
         self.download_image_button = tk.Button(buttons_frame, text="Images", command=self.downloadImageButtonAction)
         self.download_attachment_button = tk.Button(buttons_frame, text="Attachments", command=self.downloadAttachmentButtonAction)
+        self.download_all_button = tk.Button(buttons_frame, text="Download All", command=self.downloadAAllButtonAction)
 
         # Status
         self.output_status_label = tk.Label(labelframe, text="", fg="green")
@@ -159,6 +160,7 @@ class App(tk.Tk):
         self.download_resource_button.grid(row=0, column=3, padx=5, pady=padding_y, sticky=tk.W)
         self.download_image_button.grid(row=0, column=4, padx=5, pady=padding_y, sticky=tk.W)
         self.download_attachment_button.grid(row=0, column=5, padx=5, pady=padding_y, sticky=tk.W)
+        self.download_all_button.grid(row=0, column=6, padx=5, pady=padding_y, sticky=tk.W)
 
     def createStatusFrame(self, root):
         labelframe = tk.LabelFrame(root, text="Status", width=600, height=100)
@@ -376,6 +378,36 @@ class App(tk.Tk):
         Thread(target=self.runResourceDownloader).start()
         # self.downloadStatusLoop()
 
+    def downloadAAllButtonAction(self):
+        course_link = self.getCourseLink()
+        if course_link == "":
+            messagebox.showinfo(title="Information", message="Please enter course link")
+            return
+
+        output_folder = self.getOutputFolder()
+        if output_folder == "":
+            messagebox.showinfo(title="Information", message="Please choose output folder")
+            return
+
+        if self.driver == None:
+            self.driver = Driver("main")
+
+        if self.bot == None:
+            self.bot = Bot(self.driver, start_week=1, gui=self)
+
+        self.bot.setCourseUrl(course_link)
+        self.bot.setOutputRoot(output_folder)
+
+        download_topics = self.getDownloadTopics()
+        self.bot.setDownloadTopics(download_topics)
+
+        if self.bot == None:
+            self.bot = Bot(self.driver, gui=self)
+
+        self.bot.setOutputRoot(output_folder)
+
+        Thread(target=self.runAllDownloader).start()
+
     def pauseDownloadButtonAction(self):
         if self.file_downloader:
             if self.file_downloader.pause():
@@ -422,7 +454,7 @@ class App(tk.Tk):
     ###################################################################################################################
     """" Thread Functions """
     ###################################################################################################################
-    def runLoadMetaThread(self):
+    def runLoadMetaThread(self, silent=False):
         # Disable Buttons
         self.disableIOButtons()
         self.disableDownloadButtons()
@@ -444,15 +476,20 @@ class App(tk.Tk):
 
             self.setInputStatus("Loaded {} weeks with {} topics..".format(len(self.meta_data), item_count))
 
-            messagebox.showinfo(title="Information", message="Meta data loaded!")
+            if not silent:
+                messagebox.showinfo(title="Information", message="Meta data loaded!")
             # Enable Buttons
             self.disableButtons(self.load_button, val=False)
+
+            return True
         else:
             messagebox.showwarning("Warning", "Canceled")
             # Enable Buttons
             self.disableButtons(self.load_button, self.scrape_button, self.download_resource_button, val=False)
 
-    def runDownloadHtmlAndGetVideoQueue(self):
+            return False
+
+    def runDownloadHtmlAndGetVideoQueue(self, silent=False):
         self.setOutputStatus("Scraping...", color="red")
 
         # Disable Buttons
@@ -467,9 +504,10 @@ class App(tk.Tk):
         # Enable Buttons
         self.disableIOButtons(False)
 
-        messagebox.showinfo(title="Information", message="HTML Downloaded and Video Download Queue Generated")
+        if not silent:
+            messagebox.showinfo(title="Information", message="HTML Downloaded and Video Download Queue Generated")
 
-    def runVideoDownloader(self):
+    def runVideoDownloader(self, silent=False):
         # Disable Buttons
         self.disableIOButtons()
         self.disableDownloadButtons(False)
@@ -484,53 +522,79 @@ class App(tk.Tk):
         self.file_downloader.loadQueueFromList(self.download_queue)
         self.file_downloader.startDownloadGui()
 
-    def runResourceDownloader(self):
+    def runResourceDownloader(self, silent=False):
         # Disable Buttons
         self.disableIOButtons()
         self.disableDownloadButtons()
 
         self.bot.downloadResources()
 
-        messagebox.showinfo(title="Information", message="Resource Download Complete!")
+        if not silent:
+            messagebox.showinfo(title="Information", message="Resource Download Complete!")
 
         # Enable Buttons
         self.disableIOButtons(False)
 
-    def runExternalExerciseDownloader(self):
+    def runExternalExerciseDownloader(self, silent=False):
         # Disable Buttons
         self.disableIOButtons()
         self.disableDownloadButtons()
 
         self.bot.downloadExternalExercise()
 
-        messagebox.showinfo(title="Information", message="External Exercise Download Complete!")
+        if not silent:
+            messagebox.showinfo(title="Information", message="External Exercise Download Complete!")
 
         # Enable Buttons
         self.disableIOButtons(False)
 
-    def runImageDownloader(self):
+    def runImageDownloader(self, silent=False):
         # Disable Buttons
         self.disableIOButtons()
         self.disableDownloadButtons()
 
         self.bot.downloadImages()
 
-        messagebox.showinfo(title="Information", message="Image(s) Download Complete!")
+        if not silent:
+            messagebox.showinfo(title="Information", message="Image(s) Download Complete!")
 
         # Enable Buttons
         self.disableIOButtons(False)
 
-    def runAttachmentDownloader(self):
+    def runAttachmentDownloader(self, silent=False):
         # Disable Buttons
         self.disableIOButtons()
         self.disableDownloadButtons()
 
         self.bot.downloadAttachments()
 
-        messagebox.showinfo(title="Information", message="Attachment(s) Download Complete!")
+        if not silent:
+            messagebox.showinfo(title="Information", message="Attachment(s) Download Complete!")
 
         # Enable Buttons
         self.disableIOButtons(False)
+
+    def runAllDownloader(self):
+        # Disable Buttons
+        self.disableIOButtons()
+        self.disableDownloadButtons()
+
+        meta_downloaded = self.runLoadMetaThread(silent=True)
+
+        if not meta_downloaded:
+            return
+
+        self.runDownloadHtmlAndGetVideoQueue(silent=True)
+        self.runResourceDownloader(silent=True)
+        self.runExternalExerciseDownloader(silent=True)
+        self.runImageDownloader(silent=True)
+        self.runAttachmentDownloader(silent=True)
+
+        if not self.download_queue:
+            # messagebox.showinfo(title="Information", message="Download Queue is Empty!")
+            print("Download Queue is Empty!")
+        else:
+            self.runVideoDownloader(silent=True)
 
     ###################################################################################################################
     """" Looper Functions """
@@ -672,7 +736,8 @@ class App(tk.Tk):
 
     def disableIOButtons(self, val=True):
         self.disableButtons(self.load_button, self.scrape_button, self.download_video_button,
-                            self.download_external_button, self.download_resource_button, val=val)
+                            self.download_external_button, self.download_resource_button, self.download_image_button,
+                            self.download_attachment_button, self.download_all_button, val=val)
 
     def disableDownloadButtons(self, val=True):
         self.disableButtons(self.pause_resume_btn, self.skip_btn, self.cancel_btn, val=val)
