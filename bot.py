@@ -111,8 +111,6 @@ class Bot:
 
             data.append(week)
 
-            break
-
         self.meta_data = data
 
         if self.isGuiAttached():

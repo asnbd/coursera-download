@@ -127,13 +127,13 @@ class App(tk.Tk):
 
         # Button Group
         buttons_frame = tk.Frame(labelframe)
+        self.download_all_button = tk.Button(buttons_frame, text="Start Download", command=self.downloadAllButtonAction)
         self.scrape_button = tk.Button(buttons_frame, text="Scrape", state=tk.DISABLED, width=8, command=self.scrapeButtonAction)
         self.download_video_button = tk.Button(buttons_frame, text="Download Video", state=tk.DISABLED, command=self.downloadVideoButtonAction)
         self.download_external_button = tk.Button(buttons_frame, text="External Exercise", state=tk.DISABLED, command=self.downloadExternalButtonAction)
         self.download_resource_button = tk.Button(buttons_frame, text="Resource", command=self.downloadResourceButtonAction)
         self.download_image_button = tk.Button(buttons_frame, text="Images", command=self.downloadImageButtonAction)
         self.download_attachment_button = tk.Button(buttons_frame, text="Attachments", command=self.downloadAttachmentButtonAction)
-        self.download_all_button = tk.Button(buttons_frame, text="Download All", command=self.downloadAllButtonAction)
 
         # Status
         self.output_status_label = tk.Label(labelframe, text="", fg="green")
@@ -516,27 +516,9 @@ class App(tk.Tk):
         if not silent:
             messagebox.showinfo(title="Information", message="HTML Downloaded and Video Download Queue Generated")
 
-    def runCaptionDownloader(self):
-        # Disable Buttons
-        self.disableIOButtons()
-        self.disableDownloadButtons(False)
-
-        root = self.getOutputFolder()
-        if self.file_downloader == None:
-            self.file_downloader = FileDownloader(root)
-
-        self.file_downloader.attachGUI(self)
-
-        self.file_downloader.loadQueueFromList(self.download_queue_captions)
-        self.file_downloader.startDownloadGui()
-
     def runVideoDownloader(self, silent=False):
-        # Download Captions
-        self.runCaptionDownloader()
-
-        # Download Videos
-        self.file_downloader.loadQueueFromList(self.download_queue_video)
-        self.file_downloader.startDownloadGui()
+        self.downloadCaptions()
+        self.downloadVideos()
 
         if not silent:
             self.showMessageDialog("Video Download Complete!")
@@ -646,6 +628,26 @@ class App(tk.Tk):
         self.setFileDownloaderText(week="Complete", topic="All Download Complete!", color="green")
 
         utils.log("All Download Complete!")
+
+    # Other Thread Functions
+    def downloadCaptions(self):
+        # Disable Buttons
+        self.disableIOButtons()
+        self.disableDownloadButtons(False)
+
+        root = self.getOutputFolder()
+        if self.file_downloader == None:
+            self.file_downloader = FileDownloader(root)
+
+        self.file_downloader.attachGUI(self)
+
+        self.file_downloader.loadQueueFromList(self.download_queue_captions)
+        self.file_downloader.startDownloadGui()
+
+    def downloadVideos(self):
+        # Download Videos
+        self.file_downloader.loadQueueFromList(self.download_queue_video)
+        self.file_downloader.startDownloadGui()
 
     ###################################################################################################################
     """" Looper Functions """
