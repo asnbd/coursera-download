@@ -152,11 +152,3 @@ def setGuiFileDownloaderInfo(gui, week=None, topic=None, filename=None, url=None
         gui.setFileDownloaderInfo(week=week, topic=topic, filename=filename, url=url, output=output, eta=eta,
                                   speed=speed, dl_size=dl_size, file_size=file_size, progress=progress,
                                   current_no=current_no, total_files=total_files)
-
-if __name__ == '__main__':
-    root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test\\Test1"
-    # path = os.path.join(root, "targetdirectory")
-
-    print("main")
-    download(root)
-

@@ -94,12 +94,3 @@ def saveHtml(path, html):
     file.write(html)
     file.close()
     print("Saved: ", path)
-
-
-if __name__ == '__main__':
-    print("main")
-    root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test\\Test1"
-    # path = os.path.join(root, "targetdirectory")
-
-    download(root)
-

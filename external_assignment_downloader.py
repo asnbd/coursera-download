@@ -171,14 +171,3 @@ def getFullUrl(base, url):
     else:
         return urljoin(base, url)
 
-
-if __name__ == '__main__':
-    print("main")
-
-    root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test\\Test1"
-
-    with open("data/log_20210425_044352/download_queue_assignment.json", "r") as json_file:
-        links = json.load(json_file)
-        print("Loaded", len(links), "item(s)")
-
-    download(root, links)

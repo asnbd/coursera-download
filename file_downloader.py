@@ -152,11 +152,3 @@ class FileDownloader:
 
     def isGuiAttached(self):
         return True if self.gui is not None else False
-
-
-if __name__ == "__main__":
-    root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test"
-    downloader = FileDownloader(root)
-
-    downloader.loadQueueFromJson("data/log_20210424_031453/download_queue.json")
-    downloader.startDownload()
