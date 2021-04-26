@@ -279,6 +279,26 @@ class Driver:
 
         return iframe_url
 
+    def isLoggedIn(self, url=None):
+        if url:
+            self.loadUrl(url)
+        try:
+            element = WebDriverWait(self.driver, 40).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-PageHeaderWrapper")),
+            )
+        except Exception as e:
+            utils.log(e)
+
+        time.sleep(3)
+
+        login = self.driver.find_elements_by_class_name("c-ph-log-in")
+
+        if login:
+            self.executeScript("document.getElementsByClassName('c-ph-log-in')[0].firstChild.click()")
+            return False
+
+        return True
+
     ###################################################################################################################
     """" Driver Functions """
     ###################################################################################################################

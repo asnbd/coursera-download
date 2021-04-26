@@ -427,29 +427,30 @@ class App(tk.Tk):
         self.disableIOButtons()
         self.disableDownloadButtons()
 
-        self.setInputStatus("Loading Metadata...", color="red")
+        self.setInputStatus("Loading coursera...", color="grey")
         self.meta_data = self.bot.loadMeta()
 
-        if not self.meta_data:
-            messagebox.showwarning("Warning", "Course URL not set")
-            return
-        print(self.meta_data)
+        if self.meta_data:
+            print(self.meta_data)
 
-        item_count = 0
+            item_count = 0
 
-        for week in self.meta_data:
-            for topic in week['topics']:
-                item_count += len(topic['items'])
+            for week in self.meta_data:
+                for topic in week['topics']:
+                    item_count += len(topic['items'])
 
-        # self.scrape_button.config(state="normal")
-        self.disableButtons(self.scrape_button, self.load_button, val=False)
+            # self.scrape_button.config(state="normal")
+            self.disableButtons(self.scrape_button, self.load_button, val=False)
 
-        self.setInputStatus("Loaded {} weeks with {} topics..".format(len(self.meta_data), item_count))
+            self.setInputStatus("Loaded {} weeks with {} topics..".format(len(self.meta_data), item_count))
 
-        messagebox.showinfo(title="Information", message="Meta data loaded!")
-
-        # Enable Buttons
-        self.disableButtons(self.load_button, self.scrape_button, self.download_resource_button, val=False)
+            messagebox.showinfo(title="Information", message="Meta data loaded!")
+            # Enable Buttons
+            self.disableButtons(self.load_button, val=False)
+        else:
+            messagebox.showwarning("Warning", "Canceled")
+            # Enable Buttons
+            self.disableButtons(self.load_button, self.scrape_button, self.download_resource_button, val=False)
 
     def runDownloadHtmlAndGetVideoQueue(self):
         self.setOutputStatus("Scraping...", color="red")
@@ -685,6 +686,12 @@ class App(tk.Tk):
 
         self.disableIOButtons(False)
         self.disableDownloadButtons(True)
+
+    def showMessageDialog(self, msg, title="Information"):
+        messagebox.showinfo(title=title, message=msg)
+
+    def askOkCancelDialog(self, msg, title="Information"):
+        return messagebox.askokcancel(title=title, message=msg)
 
     # Set Status
     def setInputStatus(self, text, color="green"):

@@ -55,11 +55,24 @@ class Bot:
         self.downloadHtmlAndGetVideoQueue(data)
 
     def loadMeta(self):
-        if self.isGuiAttached():
-            self.gui.setFileDownloaderInfo(week="", topic="Loading Weeks...")
-
         if not self.home_url:
+            self.gui.showMessageDialog("Please enter course url")
             return False
+
+        if not self.driver.isLoggedIn(self.home_url):
+            if self.isGuiAttached():
+                self.gui.setInputStatus("Log in required!", color="red")
+                self.gui.showMessageDialog("Please login and then press OK.")
+
+        while not self.driver.isLoggedIn():
+            if self.isGuiAttached():
+                res = self.gui.askOkCancelDialog("Please login and then press OK to start loading. Otherwise press cancel.")
+                if not res:
+                    return False
+
+        if self.isGuiAttached():
+            self.gui.setInputStatus("Loading metadata...", color="blue")
+            self.gui.setFileDownloaderInfo(week="", topic="Loading Weeks...")
 
         weeks = self.driver.getWeeks(self.home_url)
 
