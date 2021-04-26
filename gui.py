@@ -59,13 +59,13 @@ class App(tk.Tk):
         return bottom_frame
 
     def createInputFrame(self, root):
-        labelframe = tk.LabelFrame(root, text="Input", width=600, height=300)
+        labelframe = ttk.LabelFrame(root, text="Input", width=600, height=300)
         labelframe.pack(fill="x", expand="yes")
 
         course_link_label = tk.Label(labelframe, text="Course Link:")
-        self.course_link_entry = tk.Entry(labelframe, width=100)
+        self.course_link_entry = ttk.Entry(labelframe, width=100)
 
-        self.load_button = tk.Button(labelframe, text="Load", width=8)
+        self.load_button = ttk.Button(labelframe, text="Load", width=8)
         self.load_button.config(command=self.loadButtonAction)
 
         self.input_status_label = tk.Label(labelframe, text="", fg="green")
@@ -96,19 +96,19 @@ class App(tk.Tk):
         # get_graded_check_box.grid(row=0, column=3, padx=5, sticky=tk.S + tk.N + tk.W)
 
     def createOutputFrame(self, root):
-        labelframe = tk.LabelFrame(root, text="Output", width=600, height=300)
+        labelframe = ttk.LabelFrame(root, text="Output", width=600, height=300)
         labelframe.pack(fill="x", expand="yes")
 
         output_folder_label = tk.Label(labelframe, text="Output:")
         self.output_folder_var = tk.StringVar()
-        output_folder_entry = tk.Entry(labelframe, textvariable=self.output_folder_var, width=100)
+        output_folder_entry = ttk.Entry(labelframe, textvariable=self.output_folder_var, width=100)
 
         def browseFolder():
             folder_selected = filedialog.askdirectory()
             if folder_selected != "":
                 self.output_folder_var.set(folder_selected)
 
-        browse_button = tk.Button(labelframe, text="Browse", width=8, command=browseFolder)
+        browse_button = ttk.Button(labelframe, text="Browse", width=8, command=browseFolder)
 
         # browse_button.config(command=browseFolder)
 
@@ -119,15 +119,27 @@ class App(tk.Tk):
         self.get_external_check_var = tk.IntVar(value=1)
 
         checkboxes_frame = tk.Frame(labelframe)
-        get_video_check_box = tk.Checkbutton(checkboxes_frame, text="Video", variable=self.get_video_check_var)
-        get_reading_check_box = tk.Checkbutton(checkboxes_frame, text="Reading", variable=self.get_reading_check_var)
-        get_quiz_check_box = tk.Checkbutton(checkboxes_frame, text="Quiz", variable=self.get_quiz_check_var)
-        get_graded_check_box = tk.Checkbutton(checkboxes_frame, text="Peer Graded", variable=self.get_graded_check_var)
-        get_external_check_box = tk.Checkbutton(checkboxes_frame, text="External Exercise", variable=self.get_external_check_var)
+        get_video_check_box = ttk.Checkbutton(checkboxes_frame, text="Video", variable=self.get_video_check_var)
+        get_reading_check_box = ttk.Checkbutton(checkboxes_frame, text="Reading", variable=self.get_reading_check_var)
+        get_quiz_check_box = ttk.Checkbutton(checkboxes_frame, text="Quiz", variable=self.get_quiz_check_var)
+        get_graded_check_box = ttk.Checkbutton(checkboxes_frame, text="Peer Graded", variable=self.get_graded_check_var)
+        get_external_check_box = ttk.Checkbutton(checkboxes_frame, text="External Exercise", variable=self.get_external_check_var)
 
         # Button Group
         buttons_frame = tk.Frame(labelframe)
-        self.download_all_button = tk.Button(buttons_frame, text="Start Download", command=self.downloadAllButtonAction)
+        self.download_all_button = ttk.Button(buttons_frame, text="Start Download", command=self.downloadAllButtonAction)
+
+        # Menu Button
+        more_menu_button = ttk.Menubutton(buttons_frame, text='More')
+        more_menu_button.menu = tk.Menu(more_menu_button, tearoff=0)
+        more_menu_button['menu'] = more_menu_button.menu
+        more_menu_button.menu.add_command(label="Scrape", command=self.scrapeButtonAction)
+        more_menu_button.menu.add_command(label="Download Video", command=self.downloadVideoButtonAction)
+        more_menu_button.menu.add_command(label="Download External Exercise", command=self.downloadExternalButtonAction)
+        more_menu_button.menu.add_command(label="Download Resource", command=self.downloadResourceButtonAction)
+        more_menu_button.menu.add_command(label="Download Images", command=self.downloadImageButtonAction)
+        more_menu_button.menu.add_command(label="Download Attachments", command=self.downloadAttachmentButtonAction)
+
         self.scrape_button = tk.Button(buttons_frame, text="Scrape", state=tk.DISABLED, width=8, command=self.scrapeButtonAction)
         self.download_video_button = tk.Button(buttons_frame, text="Download Video", state=tk.DISABLED, command=self.downloadVideoButtonAction)
         self.download_external_button = tk.Button(buttons_frame, text="External Exercise", state=tk.DISABLED, command=self.downloadExternalButtonAction)
@@ -142,7 +154,7 @@ class App(tk.Tk):
 
         output_folder_label.grid(row=0, column=0, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
         output_folder_entry.grid(row=0, column=1, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
-        browse_button.grid(row=0, column=2, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
+        browse_button.grid(row=0, column=2, ipadx=5, padx=5, pady=padding_y + 2, sticky=tk.S + tk.N)
         checkboxes_frame.grid(row=1, column=1, pady=padding_y + 2, sticky=tk.S + tk.N + tk.W)
         buttons_frame.grid(row=2, column=1, padx=5, pady=padding_y, sticky=tk.W)
         self.output_status_label.grid(row=3, column=1, padx=5, pady=0, sticky=tk.W)
@@ -155,16 +167,17 @@ class App(tk.Tk):
         get_external_check_box.grid(row=0, column=4, padx=5, sticky=tk.S + tk.N + tk.W)
 
         # Buttons Frame
-        self.scrape_button.grid(row=0, column=0, padx=5, pady=padding_y, sticky=tk.N)
-        self.download_video_button.grid(row=0, column=1, padx=5, pady=padding_y, sticky=tk.W)
-        self.download_external_button.grid(row=0, column=2, padx=5, pady=padding_y, sticky=tk.W)
-        self.download_resource_button.grid(row=0, column=3, padx=5, pady=padding_y, sticky=tk.W)
-        self.download_image_button.grid(row=0, column=4, padx=5, pady=padding_y, sticky=tk.W)
-        self.download_attachment_button.grid(row=0, column=5, padx=5, pady=padding_y, sticky=tk.W)
-        self.download_all_button.grid(row=0, column=6, padx=5, pady=padding_y, sticky=tk.W)
+        self.download_all_button.grid(row=0, column=0, ipadx="5", padx=5, pady=padding_y, sticky=tk.W)
+        more_menu_button.grid(row=0, column=1, padx=5, pady=padding_y, sticky=tk.W)
+        # self.scrape_button.grid(row=0, column=1, padx=5, pady=padding_y, sticky=tk.N)
+        # self.download_video_button.grid(row=0, column=2, padx=5, pady=padding_y, sticky=tk.W)
+        # self.download_external_button.grid(row=0, column=3, padx=5, pady=padding_y, sticky=tk.W)
+        # self.download_resource_button.grid(row=0, column=4, padx=5, pady=padding_y, sticky=tk.W)
+        # self.download_image_button.grid(row=0, column=5, padx=5, pady=padding_y, sticky=tk.W)
+        # self.download_attachment_button.grid(row=0, column=6, padx=5, pady=padding_y, sticky=tk.W)
 
     def createStatusFrame(self, root):
-        labelframe = tk.LabelFrame(root, text="Status", width=600, height=100)
+        labelframe = ttk.LabelFrame(root, text="Status", width=600, height=100)
         labelframe.pack(fill="x", expand="yes")
 
         self.status_label_line_1 = tk.Label(labelframe, text="Downloading")
@@ -177,7 +190,7 @@ class App(tk.Tk):
 
 
     def createFileDownloaderFrame(self, root):
-        labelframe = tk.LabelFrame(root, text="File Downloader", width=600, height=500)
+        labelframe = ttk.LabelFrame(root, text="File Downloader", width=600, height=500)
         labelframe.pack(fill="x", expand="yes")
 
         self.week_label = tk.Label(labelframe, text="", fg="green")
@@ -214,9 +227,9 @@ class App(tk.Tk):
 
         # Button Group
         button_group_frame = tk.Frame(labelframe)
-        self.pause_resume_btn = tk.Button(button_group_frame, text="Pause", width=8, state=tk.DISABLED, command=self.pauseDownloadButtonAction)
-        self.skip_btn = tk.Button(button_group_frame, text="Skip", width=8, state=tk.DISABLED, command=self.skipDownloadButtonAction)
-        self.cancel_btn = tk.Button(button_group_frame, text="Cancel", width=8, state=tk.DISABLED, command=self.cancelDownloadButtonAction)
+        self.pause_resume_btn = ttk.Button(button_group_frame, text="Pause", width=8, state=tk.DISABLED, command=self.pauseDownloadButtonAction)
+        self.skip_btn = ttk.Button(button_group_frame, text="Skip", width=8, state=tk.DISABLED, command=self.skipDownloadButtonAction)
+        self.cancel_btn = ttk.Button(button_group_frame, text="Cancel", width=8, state=tk.DISABLED, command=self.cancelDownloadButtonAction)
 
         padding_y = 0
 
@@ -252,9 +265,9 @@ class App(tk.Tk):
 
         # Button Group Frame
         button_group_frame.grid(row=9, column=3, padx=5, pady=padding_y + 3, sticky=tk.E)
-        self.pause_resume_btn.grid(row=0, column=0, padx=5, pady=padding_y, sticky=tk.E)
-        self.skip_btn.grid(row=0, column=1, padx=5, pady=padding_y, sticky=tk.E)
-        self.cancel_btn.grid(row=0, column=2, padx=5, pady=padding_y, sticky=tk.E)
+        self.pause_resume_btn.grid(row=0, column=0, ipadx="5", padx=5, pady=padding_y, sticky=tk.E)
+        self.skip_btn.grid(row=0, column=1, ipadx="5", padx=5, pady=padding_y, sticky=tk.E)
+        self.cancel_btn.grid(row=0, column=2, ipadx="5", padx=5, pady=padding_y, sticky=tk.E)
 
         labelframe.columnconfigure(1, weight=1)
         labelframe.columnconfigure(3, weight=2)
