@@ -71,8 +71,6 @@ class FileDownloader:
                 self.stop_queue = False
                 return
 
-        self.gui.showDownloadCompleteDialog()
-
     def downloadFileGui(self, url, filename, path):
         fullpath = os.path.join(self.download_root, path, filename)
         fullpath = os.path.normpath(fullpath)

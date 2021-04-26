@@ -16,7 +16,8 @@ class App(tk.Tk):
     bot = None
     driver = None
     meta_data = None
-    download_queue = None
+    download_queue_video = None
+    download_queue_captions = None
     external_exercise_queue = None
     file_downloader = None
 
@@ -302,7 +303,7 @@ class App(tk.Tk):
             messagebox.showinfo(title="Information", message="Please choose output folder")
             return
 
-        if not self.download_queue:
+        if not self.download_queue_video:
             messagebox.showinfo(title="Information", message="Download Queue is Empty!")
             return
 
@@ -490,16 +491,19 @@ class App(tk.Tk):
             return False
 
     def runDownloadHtmlAndGetVideoQueue(self, silent=False):
-        self.setOutputStatus("Scraping...", color="red")
+        self.setOutputStatus("Scraping...", color="blue")
 
         # Disable Buttons
         self.disableIOButtons()
         self.disableDownloadButtons()
 
-        self.download_queue, self.external_exercise_queue = self.bot.downloadHtmlAndGetVideoQueue(self.meta_data)
-        print(self.download_queue)
+        result = self.bot.downloadHtmlAndGetVideoQueue(self.meta_data)
+        self.download_queue_video, self.download_queue_captions, self.external_exercise_queue = result
 
-        self.setOutputStatus("Downloaded HTMLs & Loaded {} videos in the queue".format(len(self.download_queue)), color="green")
+        print(self.download_queue_captions)
+        print(self.download_queue_video)
+
+        self.setOutputStatus("Downloaded HTMLs & Loaded {} video(s), {} external exercise in the queue".format(len(self.download_queue_video), len(self.external_exercise_queue)), color="green")
 
         # Enable Buttons
         self.disableIOButtons(False)
@@ -512,15 +516,22 @@ class App(tk.Tk):
         self.disableIOButtons()
         self.disableDownloadButtons(False)
 
-        # root = "I:\\Others\\Downloads\\Coursera\\Google Project Management\\Test"
         root = self.getOutputFolder()
         if self.file_downloader == None:
             self.file_downloader = FileDownloader(root)
 
         self.file_downloader.attachGUI(self)
-        # self.file_downloader.loadQueueFromJson("data/log_20210424_031453/download_queue.json")
-        self.file_downloader.loadQueueFromList(self.download_queue)
+
+        # Download Captions
+        self.file_downloader.loadQueueFromList(self.download_queue_captions)
         self.file_downloader.startDownloadGui()
+
+        # Download Videos
+        self.file_downloader.loadQueueFromList(self.download_queue_video)
+        self.file_downloader.startDownloadGui()
+
+        if not silent:
+            self.showMessageDialog("Video Download Complete!")
 
     def runResourceDownloader(self, silent=False):
         # Disable Buttons
@@ -590,7 +601,7 @@ class App(tk.Tk):
         self.runImageDownloader(silent=True)
         self.runAttachmentDownloader(silent=True)
 
-        if not self.download_queue:
+        if not self.download_queue_video:
             # messagebox.showinfo(title="Information", message="Download Queue is Empty!")
             print("Download Queue is Empty!")
         else:
@@ -672,8 +683,8 @@ class App(tk.Tk):
             total_progress = prev_progress + (single_progress * progress / 100)
             total_text = "{} of {} ( {:.2f} % )".format(current_no, total_files, total_progress)
 
-        if week is not None: self.week_label.config(text=week)
-        if topic is not None: self.topic_label.config(text=self.fitText(topic, 70))
+        if week is not None: self.week_label.config(text=week, fg="blue")
+        if topic is not None: self.topic_label.config(text=self.fitText(topic, 70), fg="blue")
         if filename is not None: self.filename_val_label.config(text=self.fitText(filename))
         if url is not None: self.url_val_label.config(text=self.fitText(url))
         if output is not None: self.output_val_label.config(text=self.fitText(output))

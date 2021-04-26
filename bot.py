@@ -111,6 +111,8 @@ class Bot:
 
             data.append(week)
 
+            break
+
         self.meta_data = data
 
         if self.isGuiAttached():
@@ -161,7 +163,8 @@ class Bot:
         return True
 
     def downloadHtmlAndGetVideoQueue(self, data):
-        download_queue = []
+        download_queue_captions = []
+        download_queue_video = []
         download_queue_assignment = []
         skipped = []
         skipped_important = []
@@ -207,8 +210,8 @@ class Bot:
                             filename = utils.getFormattedFileName(filename)
                             print(path)
                             print(filename)
-                            download_queue.append({"path": path, "filename": filename + ".webm", "url": video_url})
-                            download_queue.append({"path": path, "filename": filename + ".vtt", "url": captions_url})
+                            download_queue_video.append({"path": path, "filename": filename + ".webm", "url": video_url})
+                            download_queue_captions.append({"path": path, "filename": filename + ".vtt", "url": captions_url})
                             # print(video)
                         pass
 
@@ -280,12 +283,12 @@ class Bot:
                 print()
             print()
 
-        self.download_queue = download_queue
+        self.download_queue = download_queue_video
         self.download_queue_assignment = download_queue_assignment
         self.skipped_important = skipped_important
         self.skipped = skipped
 
-        print(download_queue)
+        print(download_queue_video)
 
         print("Skipped Important Items:")
         for item in skipped_important:
@@ -295,11 +298,11 @@ class Bot:
         for item in skipped:
             print(item)
 
-        self.dumpData(data, download_queue, download_queue_assignment, skipped_important, skipped)
+        self.dumpData(data, download_queue_video, download_queue_assignment, skipped_important, skipped)
 
         print(json.dumps(data))
 
-        return download_queue, download_queue_assignment
+        return download_queue_video, download_queue_captions, download_queue_assignment
 
     def downloadExternalExercise(self):
         root = self.root
