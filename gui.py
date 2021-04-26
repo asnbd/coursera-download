@@ -532,6 +532,9 @@ class App(tk.Tk):
 
         if not silent:
             self.showMessageDialog("Video Download Complete!")
+            self.setFileDownloaderText(week="Complete", topic="Video Download Complete!", color="green")
+
+        utils.log("Video Download Complete!")
 
     def runResourceDownloader(self, silent=False):
         # Disable Buttons
@@ -606,6 +609,11 @@ class App(tk.Tk):
             print("Download Queue is Empty!")
         else:
             self.runVideoDownloader(silent=True)
+
+        self.showMessageDialog("All Download Complete!")
+        self.setFileDownloaderText(week="Complete", topic="All Download Complete!", color="green")
+
+        utils.log("All Download Complete!")
 
     ###################################################################################################################
     """" Looper Functions """
@@ -701,6 +709,13 @@ class App(tk.Tk):
 
         if progress is not None: self.progress_bar['value'] = progress
         if total_progress is not None: self.total_progress_bar['value'] = total_progress
+
+    def setFileDownloaderText(self, week=None, topic=None, color="black"):
+        if week is not None:
+            self.week_label.config(text=week, fg=color)
+
+        if topic is not None:
+            self.topic_label.config(text=self.fitText(topic, 70), fg=color)
 
     def resetFileDownloaderInfo(self):
         self.setFileDownloaderInfo(week="", topic="", filename="", url="", output="",
