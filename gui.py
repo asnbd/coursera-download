@@ -516,7 +516,7 @@ class App(tk.Tk):
         if not silent:
             messagebox.showinfo(title="Information", message="HTML Downloaded and Video Download Queue Generated")
 
-    def runVideoDownloader(self, silent=False):
+    def runCaptionDownloader(self):
         # Disable Buttons
         self.disableIOButtons()
         self.disableDownloadButtons(False)
@@ -527,9 +527,12 @@ class App(tk.Tk):
 
         self.file_downloader.attachGUI(self)
 
-        # Download Captions
         self.file_downloader.loadQueueFromList(self.download_queue_captions)
         self.file_downloader.startDownloadGui()
+
+    def runVideoDownloader(self, silent=False):
+        # Download Captions
+        self.runCaptionDownloader()
 
         # Download Videos
         self.file_downloader.loadQueueFromList(self.download_queue_video)
@@ -598,7 +601,7 @@ class App(tk.Tk):
         self.disableIOButtons()
         self.disableDownloadButtons()
 
-        total_steps = 7
+        total_steps = 8
         current_step = 1
 
         self.setStatusBarText("Step {} / {} : Loading metadata".format(current_step, total_steps), color="blue")
@@ -629,11 +632,13 @@ class App(tk.Tk):
         self.runAttachmentDownloader(silent=True)
 
         current_step += 1
-        self.setStatusBarText("Step {} / {} : Downloading Video(s)".format(current_step, total_steps), color="blue")
+        self.setStatusBarText("Step {} / {} : Downloading Caption(s)".format(current_step, total_steps), color="blue")
         if not self.download_queue_video:
-            # messagebox.showinfo(title="Information", message="Download Queue is Empty!")
-            print("Download Queue is Empty!")
+            print("Video Download Queue is Empty!")
         else:
+            self.runCaptionDownloader()
+            current_step += 1
+            self.setStatusBarText("Step {} / {} : Downloading Video(s)".format(current_step, total_steps), color="blue")
             self.runVideoDownloader(silent=True)
 
         self.setStatusBarText("Ready")
