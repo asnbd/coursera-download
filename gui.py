@@ -133,7 +133,7 @@ class App(tk.Tk):
         self.download_resource_button = tk.Button(buttons_frame, text="Resource", command=self.downloadResourceButtonAction)
         self.download_image_button = tk.Button(buttons_frame, text="Images", command=self.downloadImageButtonAction)
         self.download_attachment_button = tk.Button(buttons_frame, text="Attachments", command=self.downloadAttachmentButtonAction)
-        self.download_all_button = tk.Button(buttons_frame, text="Download All", command=self.downloadAAllButtonAction)
+        self.download_all_button = tk.Button(buttons_frame, text="Download All", command=self.downloadAllButtonAction)
 
         # Status
         self.output_status_label = tk.Label(labelframe, text="", fg="green")
@@ -209,6 +209,9 @@ class App(tk.Tk):
         self.progress_bar = ttk.Progressbar(labelframe, length=100, orient=tk.HORIZONTAL, mode='determinate')
         self.total_progress_bar = ttk.Progressbar(labelframe, length=100, orient=tk.HORIZONTAL, mode='determinate')
 
+        # Status Bar
+        self.status_bar_label = tk.Label(labelframe, text="Ready")
+
         # Button Group
         button_group_frame = tk.Frame(labelframe)
         self.pause_resume_btn = tk.Button(button_group_frame, text="Pause", width=8, state=tk.DISABLED, command=self.pauseDownloadButtonAction)
@@ -245,6 +248,7 @@ class App(tk.Tk):
         self.total_val_label.grid(row=7, column=1, padx=5, pady=padding_y, sticky=tk.W)
 
         self.total_progress_bar.grid(row=8, column=0, columnspan=4, padx=5, pady=padding_y + 3, sticky=tk.W + tk.E)
+        self.status_bar_label.grid(row=9, column=0, columnspan=3, padx=5, pady=padding_y + 3, sticky=tk.W)
 
         # Button Group Frame
         button_group_frame.grid(row=9, column=3, padx=5, pady=padding_y + 3, sticky=tk.E)
@@ -379,8 +383,9 @@ class App(tk.Tk):
         Thread(target=self.runResourceDownloader).start()
         # self.downloadStatusLoop()
 
-    def downloadAAllButtonAction(self):
+    def downloadAllButtonAction(self):
         course_link = self.getCourseLink()
+
         if course_link == "":
             messagebox.showinfo(title="Information", message="Please enter course link")
             return
@@ -593,23 +598,45 @@ class App(tk.Tk):
         self.disableIOButtons()
         self.disableDownloadButtons()
 
+        total_steps = 7
+        current_step = 1
+
+        self.setStatusBarText("Step {} / {} : Loading metadata".format(current_step, total_steps), color="blue")
         meta_downloaded = self.runLoadMetaThread(silent=True)
 
         if not meta_downloaded:
+            self.setStatusBarText("Ready")
             return
 
+        current_step += 1
+        self.setStatusBarText("Step {} / {} : Scrapping".format(current_step, total_steps), color="blue")
         self.runDownloadHtmlAndGetVideoQueue(silent=True)
+
+        current_step += 1
+        self.setStatusBarText("Step {} / {} : Downloading Resource(s)".format(current_step, total_steps), color="blue")
         self.runResourceDownloader(silent=True)
+
+        current_step += 1
+        self.setStatusBarText("Step {} / {} : Downloading External Exercise(s)".format(current_step, total_steps), color="blue")
         self.runExternalExerciseDownloader(silent=True)
+
+        current_step += 1
+        self.setStatusBarText("Step {} / {} : Downloading Image(s)".format(current_step, total_steps), color="blue")
         self.runImageDownloader(silent=True)
+
+        current_step += 1
+        self.setStatusBarText("Step {} / {} : Downloading Attachment(s)".format(current_step, total_steps), color="blue")
         self.runAttachmentDownloader(silent=True)
 
+        current_step += 1
+        self.setStatusBarText("Step {} / {} : Downloading Video(s)".format(current_step, total_steps), color="blue")
         if not self.download_queue_video:
             # messagebox.showinfo(title="Information", message="Download Queue is Empty!")
             print("Download Queue is Empty!")
         else:
             self.runVideoDownloader(silent=True)
 
+        self.setStatusBarText("Ready")
         self.showMessageDialog("All Download Complete!")
         self.setFileDownloaderText(week="Complete", topic="All Download Complete!", color="green")
 
@@ -721,6 +748,9 @@ class App(tk.Tk):
         self.setFileDownloaderInfo(week="", topic="", filename="", url="", output="",
                                    eta="", speed="", dl_size="", file_size="",
                                    progress=0, current_no=0, total_files=0)
+
+    def setStatusBarText(self, text, color="black"):
+        self.status_bar_label.config(text=text, fg=color)
 
     # Button Disable
     def disableButton(self, button, val=True):
