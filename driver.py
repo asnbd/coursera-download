@@ -30,7 +30,7 @@ class Driver:
     def getWeeks(self, url):
         self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".week-number"))
             )
         except Exception as e:
@@ -52,7 +52,7 @@ class Driver:
     def getResourceLinks(self, url):
         self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, ".rc-ReferenceNavigationItem"))
             )
         except Exception as e:
@@ -76,7 +76,7 @@ class Driver:
     def getResource(self, title, url):
         self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-CourseReferencesPage")),
             )
         except Exception as e:
@@ -94,7 +94,7 @@ class Driver:
         self.loadUrl(url)
         # self.driver.refresh()
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-WeekItemName")),
             )
         except Exception as e:
@@ -136,14 +136,14 @@ class Driver:
 
             result.append({"title": lesson_title, "items": lesson_items_list})
 
-            self.driver.implicitly_wait(3)
+            self.driver.implicitly_wait(5)
 
         return result
 
     def getVideo(self, url):
         self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".video-main-player-container")),
             )
         except Exception as e:
@@ -181,7 +181,7 @@ class Driver:
     def getReading(self, title, url):
         self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".reading-header")),
             )
         except Exception as e:
@@ -198,7 +198,7 @@ class Driver:
     def getQuiz(self, title, url):
         self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, "._1f8f5kai")),
             )
         except Exception as e:
@@ -210,7 +210,7 @@ class Driver:
         resume_button.click()
 
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-FormPartsQuestion")),
             )
         except Exception as e:
@@ -231,7 +231,7 @@ class Driver:
     def getPeerGradedAssignment(self, url):
         self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-AssignmentInstructions")),
             )
         except Exception as e:
@@ -249,7 +249,7 @@ class Driver:
         submissions_button.click()
 
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-AssignmentSubmitEditView")),
             )
         except Exception as e:
@@ -266,7 +266,7 @@ class Driver:
     def getAssignmentFrame(self, url):
         self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".widget-iframe")),
             )
         except Exception as e:
@@ -283,7 +283,7 @@ class Driver:
         if url:
             self.loadUrl(url)
         try:
-            element = WebDriverWait(self.driver, 40).until(
+            element = WebDriverWait(self.driver, 30).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".rc-PageHeaderWrapper")),
             )
         except Exception as e:
