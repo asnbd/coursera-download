@@ -296,7 +296,7 @@ class Bot:
         for item in skipped:
             print(item)
 
-        self.dumpData(data, download_queue_video, download_queue_assignment, skipped_important, skipped)
+        self.dumpData(data, download_queue_video, download_queue_captions, download_queue_assignment, skipped_important, skipped)
 
         print(json.dumps(data))
 
@@ -562,16 +562,20 @@ class Bot:
     def downloadAttachments(self):
         attachment_downloader.download(self.root, self.gui)
 
-    def dumpData(self, data, download_queue, download_queue_assignment, skipped_important, skipped):
-        path = "data/" + "log_" + utils.getFormattedDateTimeFile(utils.getCurrentTime().timestamp()) + "/"
+    def dumpData(self, data, download_queue_video, download_queue_captions, download_queue_assignment,
+                 skipped_important, skipped):
+        path = "data/logs/" + "log_" + utils.getFormattedDateTimeFile(utils.getCurrentTime().timestamp()) + "/"
 
         Path(path).mkdir(parents=True, exist_ok=True)
 
         with open(path + 'data.json', 'w') as outfile:
             json.dump(data, outfile)
 
-        with open(path + 'download_queue.json', 'w') as outfile:
-            json.dump(download_queue, outfile)
+        with open(path + 'download_queue_video.json', 'w') as outfile:
+            json.dump(download_queue_video, outfile)
+
+        with open(path + 'download_queue_captions.json', 'w') as outfile:
+            json.dump(download_queue_captions, outfile)
 
         with open(path + 'download_queue_assignment.json', 'w') as outfile:
             json.dump(download_queue_assignment, outfile)
