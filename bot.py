@@ -203,11 +203,11 @@ class Bot:
 
                     if item_type == "Video":
                         if self.get_video:
+                            print(path)
                             video_url, captions_url = self.driver.getVideo(item['url'])
                             filename = str(index).zfill(2) + ". " + item['title']
-                            filename = utils.getFormattedFileName(filename)
-                            print(path)
                             print(filename)
+                            filename = utils.getFormattedFileName(filename)
                             download_queue_video.append({"path": path, "filename": filename + ".webm", "url": video_url})
                             download_queue_captions.append({"path": path, "filename": filename + ".vtt", "url": captions_url})
                             # print(video)
@@ -215,10 +215,10 @@ class Bot:
 
                     elif item_type == "Reading":
                         if self.get_reading:
+                            print(path)
                             html = self.driver.getReading(item['title'], item['url'])
                             filename = str(index).zfill(2) + ". Reading - " + item['title']
                             filename = utils.getFormattedFileName(filename) + ".html"
-                            print(path)
                             print(filename)
                             # print(html)
                             full_path = os.path.join(self.root, path, filename)
@@ -228,10 +228,10 @@ class Bot:
 
                     elif item_type == "Quiz":
                         if self.get_quiz:
+                            print(path)
                             quiz_type, html = self.driver.getQuiz(item['title'], item['url'])
                             filename = str(index).zfill(2) + ". " + quiz_type + " - " + item['title']
                             filename = utils.getFormattedFileName(filename) + ".html"
-                            print(path)
                             print(filename)
                             # print(html)
                             full_path = os.path.join(self.root, path, filename)
@@ -239,6 +239,7 @@ class Bot:
                         pass
                     elif item_type == "Practice Peer-graded Assignment" or item_type == "Graded Assignment":
                         if self.get_graded_assignment:
+                            print(path)
                             title, res_html_instructions, res_html_submission = self.driver.getPeerGradedAssignment(
                                 item['url'])
                             filename_instructions = str(index).zfill(2) + ". " + title
@@ -247,7 +248,6 @@ class Bot:
                             filename_submission = str(index).zfill(2) + ". Submission - " + item['title']
                             filename_submission = utils.getFormattedFileName(filename_submission) + ".html"
 
-                            print(path)
                             print(filename_instructions)
                             # print(res_html_instructions)
 
@@ -262,10 +262,10 @@ class Bot:
                         pass
                     elif item_type == "Programming Assignment":
                         if self.get_external_exercise:
+                            print(path)
                             assignment_url = self.driver.getAssignmentFrame(item['url'])
                             filename = str(index).zfill(2) + ". " + item['title']
                             filename = utils.getFormattedFileName(filename) + ".html"
-                            print(path)
                             print(filename)
                             download_queue_assignment.append({"path": path, "filename": filename, "url": assignment_url, "ref": item['url']})
                             skipped_important.append(
@@ -278,8 +278,6 @@ class Bot:
                     print()
 
                 topic_index += 1
-                print()
-            print()
 
         self.download_queue = download_queue_video
         self.download_queue_assignment = download_queue_assignment
