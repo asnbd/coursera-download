@@ -130,22 +130,22 @@ class App(tk.Tk):
         self.download_all_button = ttk.Button(buttons_frame, text="Start Download", command=self.downloadAllButtonAction)
 
         # Menu Button
-        more_menu_button = ttk.Menubutton(buttons_frame, text='More')
-        more_menu_button.menu = tk.Menu(more_menu_button, tearoff=0)
-        more_menu_button['menu'] = more_menu_button.menu
-        more_menu_button.menu.add_command(label="Scrape", command=self.scrapeButtonAction)
-        more_menu_button.menu.add_command(label="Download Video", command=self.downloadVideoButtonAction)
-        more_menu_button.menu.add_command(label="Download External Exercise", command=self.downloadExternalButtonAction)
-        more_menu_button.menu.add_command(label="Download Resource", command=self.downloadResourceButtonAction)
-        more_menu_button.menu.add_command(label="Download Images", command=self.downloadImageButtonAction)
-        more_menu_button.menu.add_command(label="Download Attachments", command=self.downloadAttachmentButtonAction)
+        self.more_menu_button = ttk.Menubutton(buttons_frame, text='More')
+        self.more_menu_button.menu = tk.Menu(self.more_menu_button, tearoff=0)
+        self.more_menu_button['menu'] = self.more_menu_button.menu
+        self.more_menu_button.menu.add_command(label="Scrape", command=self.scrapeButtonAction)
+        self.more_menu_button.menu.add_command(label="Download Video", command=self.downloadVideoButtonAction)
+        self.more_menu_button.menu.add_command(label="Download External Exercise", state=tk.DISABLED, command=self.downloadExternalButtonAction)
+        self.more_menu_button.menu.add_command(label="Download Resource", command=self.downloadResourceButtonAction)
+        self.more_menu_button.menu.add_command(label="Download Images", command=self.downloadImageButtonAction)
+        self.more_menu_button.menu.add_command(label="Download Attachments", command=self.downloadAttachmentButtonAction)
 
-        self.scrape_button = tk.Button(buttons_frame, text="Scrape", state=tk.DISABLED, width=8, command=self.scrapeButtonAction)
-        self.download_video_button = tk.Button(buttons_frame, text="Download Video", state=tk.DISABLED, command=self.downloadVideoButtonAction)
-        self.download_external_button = tk.Button(buttons_frame, text="External Exercise", state=tk.DISABLED, command=self.downloadExternalButtonAction)
-        self.download_resource_button = tk.Button(buttons_frame, text="Resource", command=self.downloadResourceButtonAction)
-        self.download_image_button = tk.Button(buttons_frame, text="Images", command=self.downloadImageButtonAction)
-        self.download_attachment_button = tk.Button(buttons_frame, text="Attachments", command=self.downloadAttachmentButtonAction)
+        # self.scrape_button = tk.Button(buttons_frame, text="Scrape", state=tk.DISABLED, width=8, command=self.scrapeButtonAction)
+        # self.download_video_button = tk.Button(buttons_frame, text="Download Video", state=tk.DISABLED, command=self.downloadVideoButtonAction)
+        # self.download_external_button = tk.Button(buttons_frame, text="External Exercise", state=tk.DISABLED, command=self.downloadExternalButtonAction)
+        # self.download_resource_button = tk.Button(buttons_frame, text="Resource", command=self.downloadResourceButtonAction)
+        # self.download_image_button = tk.Button(buttons_frame, text="Images", command=self.downloadImageButtonAction)
+        # self.download_attachment_button = tk.Button(buttons_frame, text="Attachments", command=self.downloadAttachmentButtonAction)
 
         # Status
         self.output_status_label = tk.Label(labelframe, text="", fg="green")
@@ -168,7 +168,7 @@ class App(tk.Tk):
 
         # Buttons Frame
         self.download_all_button.grid(row=0, column=0, ipadx="5", padx=5, pady=padding_y, sticky=tk.W)
-        more_menu_button.grid(row=0, column=1, padx=5, pady=padding_y, sticky=tk.W)
+        self.more_menu_button.grid(row=0, column=1, padx=5, pady=padding_y, sticky=tk.W)
         # self.scrape_button.grid(row=0, column=1, padx=5, pady=padding_y, sticky=tk.N)
         # self.download_video_button.grid(row=0, column=2, padx=5, pady=padding_y, sticky=tk.W)
         # self.download_external_button.grid(row=0, column=3, padx=5, pady=padding_y, sticky=tk.W)
@@ -187,7 +187,6 @@ class App(tk.Tk):
 
         self.status_label_line_1.grid(row=0, column=0, padx=5, pady=padding_y, sticky=tk.W)
         self.status_label_line_2.grid(row=1, column=0, padx=5, pady=padding_y, sticky=tk.W)
-
 
     def createFileDownloaderFrame(self, root):
         labelframe = ttk.LabelFrame(root, text="File Downloader", width=600, height=500)
@@ -490,21 +489,19 @@ class App(tk.Tk):
                 for topic in week['topics']:
                     item_count += len(topic['items'])
 
-            # self.scrape_button.config(state="normal")
-            self.disableButtons(self.scrape_button, self.load_button, val=False)
-
             self.setInputStatus("Loaded {} weeks with {} topics..".format(len(self.meta_data), item_count))
 
             if not silent:
                 messagebox.showinfo(title="Information", message="Meta data loaded!")
+
             # Enable Buttons
-            self.disableButtons(self.load_button, val=False)
+            self.disableIOButtons(False)
 
             return True
         else:
             messagebox.showwarning("Warning", "Canceled")
             # Enable Buttons
-            self.disableButtons(self.load_button, self.scrape_button, self.download_resource_button, val=False)
+            self.disableIOButtons(False)
 
             return False
 
@@ -536,6 +533,9 @@ class App(tk.Tk):
         if not silent:
             self.showMessageDialog("Video Download Complete!")
             self.setFileDownloaderText(week="Complete", topic="Video Download Complete!", color="green")
+
+        self.disableIOButtons(False)
+        self.disableDownloadButtons()
 
         utils.log("Video Download Complete!")
 
@@ -631,14 +631,16 @@ class App(tk.Tk):
         if not self.download_queue_video:
             print("Video Download Queue is Empty!")
         else:
-            self.runCaptionDownloader()
+            self.downloadCaptions()
             current_step += 1
             self.setStatusBarText("Step {} / {} : Downloading Video(s)".format(current_step, total_steps), color="blue")
-            self.runVideoDownloader(silent=True)
+            self.downloadVideos()
 
         self.setStatusBarText("Ready")
         self.showMessageDialog("All Download Complete!")
         self.setFileDownloaderText(week="Complete", topic="All Download Complete!", color="green")
+
+        self.disableIOButtons(False)
 
         utils.log("All Download Complete!")
 
@@ -811,9 +813,7 @@ class App(tk.Tk):
             self.cancel_btn.config(state="normal")
 
     def disableIOButtons(self, val=True):
-        self.disableButtons(self.load_button, self.scrape_button, self.download_video_button,
-                            self.download_external_button, self.download_resource_button, self.download_image_button,
-                            self.download_attachment_button, self.download_all_button, val=val)
+        self.disableButtons(self.load_button, self.download_all_button, self.more_menu_button, val=val)
 
     def disableDownloadButtons(self, val=True):
         self.disableButtons(self.pause_resume_btn, self.skip_btn, self.cancel_btn, val=val)

@@ -114,6 +114,7 @@ class Driver:
 
             for lesson_item in lesson_items:
                 lesson_item_url = lesson_item.get_attribute('href')
+                lesson_item_category = self.getCategory(lesson_item_url)
                 title = lesson_item.find_element_by_class_name('rc-WeekItemName')
                 lesson_item_title = self.driver.execute_script('return arguments[0].lastChild.textContent;', title).strip()
                 # print(lesson_item_title)
@@ -128,7 +129,7 @@ class Driver:
 
                 # print(lesson_item_type)
 
-                lesson_items_list.append({"title": lesson_item_title, "type": lesson_item_type, "url": lesson_item_url})
+                lesson_items_list.append({"title": lesson_item_title, "type": lesson_item_type, "category": lesson_item_category, "url": lesson_item_url})
                 # print(lesson_item_url)
                 # print()
 
@@ -151,7 +152,7 @@ class Driver:
 
         time.sleep(3)
 
-        captions = self.driver.find_element_by_xpath("//video//track[@kind='captions']")
+        captions = self.driver.find_element_by_xpath("//video//track[@kind='captions' and @srclang='en']")
         captions_url = captions.get_attribute('src')
 
         # increase_video_size_btn = self.driver.execute_script("document.getElementsByClassName('resolution-change-controls')[0].firstChild")
@@ -164,7 +165,7 @@ class Driver:
             video_url = video.get_attribute('src')
 
             if video_url.find("720p") < 0:
-                print("video is not 720p. Recapturing...")
+                print("Video is not 720p. Recapturing...")
                 # input("Press any key to recapture...")
                 self.driver.execute_script(
                     "document.getElementsByClassName('resolution-change-controls')[0].lastChild.click()")
@@ -318,4 +319,17 @@ class Driver:
     def closeBrowser(self):
         self.driver.close()
         self.driver.quit()
+
+    ###################################################################################################################
+    """" Utility Functions """
+    ###################################################################################################################
+    def getCategory(self, url):
+        url_split = url.split("/")
+        category = url_split[5]
+
+        if category == "peer":
+            if len(url_split) >= 9 and url_split[8] == 'give-feedback':
+                category += "-give-feedback"
+
+        return category
 

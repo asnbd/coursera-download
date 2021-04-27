@@ -189,7 +189,9 @@ class Bot:
                     current_week_item_no += 1
                     current_total_item_no += 1
 
-                    item_type = item['type']
+                    # item_type = item['type']
+                    item_category = item['category']
+                    item_type = self.getItemType(item_category)
 
                     if self.isGuiAttached():
                         dl_topic = "{}. {}".format(str(topic_index).zfill(2), topic['title'])
@@ -269,9 +271,9 @@ class Bot:
                             print(filename)
                             download_queue_assignment.append({"path": path, "filename": filename, "url": assignment_url, "ref": item['url']})
                             skipped_important.append(
-                                {"type": item_type, "path": path, "title": item['title'], "url": item['url']})
+                                {"type": item_type, "category": item['category'], "path": path, "title": item['title'], "url": item['url']})
                     else:
-                        skipped.append({"type": item_type, "path": path, "title": item['title'], "url": item['url']})
+                        skipped.append({"type": item_type, "category": item['category'], "path": path, "title": item['title'], "url": item['url']})
                         continue
 
                     index += 1
@@ -596,3 +598,21 @@ class Bot:
             self.gui.setFileDownloaderInfo(week=week, topic=topic, filename=filename, url=url, output=output, eta=eta,
                                            speed=speed, dl_size=dl_size, file_size=file_size, progress=progress,
                                            current_no=current_no, total_files=total_files)
+
+    def getItemType(self, category):
+        if category == "lecture":
+            return "Video"
+        elif category == "supplement":
+            return "Reading"
+        elif category == "quiz" or category == "exam":
+            return "Quiz"
+        elif category == "ungradedWidget":
+            return "Programming Assignment"
+        elif category == "gradedLti":
+            return "Third Party Tool"
+        elif category == "peer":
+            return "Graded Assignment"
+        elif category == "peer-give-feedback":
+            return "Review Your Peers"
+        elif category == "discussionPrompt":
+            return "Discussion Forum"
