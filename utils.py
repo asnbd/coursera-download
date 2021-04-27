@@ -1,7 +1,6 @@
 from time import localtime
 from datetime import datetime
 from threading import Thread
-import winsound
 from pathlib import Path
 import os
 import re
@@ -52,17 +51,6 @@ def getFormattedFileName(filename):
     filename = filename.replace('\n', " ")
     filename = re.sub(' +', ' ', filename)
     return filename
-
-def playBeep():
-    Thread(target=runPlayBeepThread).start()
-
-
-def playShortBeep():
-    Thread(target=runPlayBeepThread, args=(1500, 90)).start()
-
-
-def runPlayBeepThread(frequency=2000, duration=200):
-    winsound.Beep(frequency, duration)
 
 
 def log(text):
